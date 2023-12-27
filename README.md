@@ -33,8 +33,8 @@ Since dwl follows [suckless](https://suckless.org/) philosophy it doesn't provid
     ### Authors
     - [Your Name](https://codeberg.org/YOURUSERNAME)
     ```
-9. Add your patch to the [dwl-patches wiki](https://codeberg.org/dwl/dwl-patches/wiki) categorized list and alphabetized sidebar using this template:
-    ```markdwon
+9. Use this template to add your patch to the [wiki](https://codeberg.org/dwl/dwl-patches/wiki)'s categorized list and sidebar index:
+    ```markdown
     * [PATCHNAME](https://codeberg.org/dwl/dwl-patches/wiki/PATCHNAME)
     ```
 10. Keep your `PATCHNAME.patch` file AND the associated wiki page updated appropriately.
