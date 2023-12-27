@@ -17,7 +17,7 @@ Since dwl follows [suckless](https://suckless.org/) philosophy it doesn't provid
 2. In your local clone of your Codeberg dwl fork, add a remote for the main dwl repository:
     `git remote add codeberg-dwl https://codeberg.org/dwl/dwl`
 3. In your local clone of your Codeberg dwl fork, create a .patch file
-    `git --diff codeberg-dwl/main > PATCHNAME.patch`
+    `git format-patch codeberg-dwl/main...<branch-name> --stdout > PATCHNAME.patch`
 4. Fork [https://codeberg.org/dwl/dwl-patches](https://codeberg.org/dwl/dwl-patches)
 5. In your dwl-patches fork, add a directory called `PATCHNAME` and place the `PATCHNAME.patch` you created in step three into the `PATCHNAME` directory. You may also place screenshots in the `PATCHNAME` directory that you can later reference in your [dwl-patches wiki](https://codeberg.org/dwl/dwl-patches/wiki) entry.
 6. Use the Codeberg web interface to send a pull request to [dwl-patches](https://codeberg.org/dwl/dwl-patches) (NOT to [dwl](https://codeberg.org/dwl/dwl))
