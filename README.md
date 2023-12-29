@@ -28,12 +28,11 @@ Since dwl follows [suckless] philosophy it doesn't provide every feature under t
     Insert a short summary of changes that your patch implements.
 
     ### Download
+    - [git branch](https://codeberg.org/USERNAME/dwl/src/branch/PATCHNAME)
     - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/src/branch/main/PATCHNAME/PATCHNAME.patch)
 
     ### Authors
-    (link goes to patch branch in author's repository if available)  
-    
-    - [YOURNAME](https://codeberg.org/YOURNAME/dwl/src/branch/PATCHNAME)
+    - [YOUR_NICK](https://codeberg.org/USERNAME)
     ```
 9. Use this template to add your patch to the [wiki]'s categorized list and sidebar index:
     ```markdown
