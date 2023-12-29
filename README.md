@@ -15,9 +15,9 @@ Since dwl follows [suckless] philosophy it doesn't provide every feature under t
 ## Contributing Patches to this Wiki
 1. If work has been done to the main branch at [dwl] since you started work on your patch, REBASE YOUR PATCH!
 2. In your local clone of your Codeberg dwl fork, add a remote for the main dwl repository:
-    `git remote add codeberg-dwl https://codeberg.org/dwl/dwl`
+    `git remote add upstream https://codeberg.org/dwl/dwl`
 3. In your local clone of your Codeberg dwl fork, create a .patch file
-    `git format-patch codeberg-dwl/main...<branch-name> --stdout > PATCHNAME.patch`
+    `git format-patch upstream/main...<branch-name> --stdout > PATCHNAME.patch`
 4. Fork [https://codeberg.org/dwl/dwl-patches][dwl-patches]
 5. In your local copy, add a directory called `PATCHNAME` and place the `PATCHNAME.patch` you created in step three into the `PATCHNAME` directory. You may also place screenshots in the `PATCHNAME` directory that you can later reference in your [dwl-patches wiki][wiki] entry.
 6. Use the Codeberg web interface to send a pull request to [dwl-patches] (NOT to [dwl])
