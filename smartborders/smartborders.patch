@@ -1,154 +1,203 @@
-From c2e65831770a54eebe6eef6e36bfa4716c7e1ada Mon Sep 17 00:00:00 2001
+From c7120b651b1a6f1ae3277088d4de9af9686c71ae Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
- <leohdz172@proton.me>
-Date: Sat, 8 Jul 2023 17:11:36 -0600
-Subject: [PATCH] port autostart patch from dwm
+ <leohdz172@protonmail.com>
+Date: Tue, 16 Aug 2022 15:28:00 -0500
+Subject: [PATCH]  don't draw borders if there is only one window
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-https://dwm.suckless.org/patches/cool_autostart/
+Co-authored-by: A Frederick Christensen <dwl@ivories.org>
+Co-authored-by: Andrey Proskurin <andreyproskurin@protonmail.com>
 Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
 ---
- config.def.h |  7 +++++++
- dwl.c        | 59 +++++++++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 61 insertions(+), 5 deletions(-)
+ config.def.h |  1 +
+ dwl.c        | 48 ++++++++++++++++++++++++++++++++----------------
+ 2 files changed, 33 insertions(+), 16 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index a8ed61d..3585711 100644
+index a8ed61d..f07cf07 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -20,6 +20,13 @@ static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 1.0}; /* You can al
- /* logging */
- static int log_level = WLR_ERROR;
- 
-+/* Autostart */
-+static const char *const autostart[] = {
-+        "wbg", "/path/to/your/image", NULL,
-+        NULL /* terminate */
-+};
-+
-+
- static const Rule rules[] = {
- 	/* app_id     title       tags mask     isfloating   monitor */
- 	/* examples:
+@@ -6,6 +6,7 @@
+ /* appearance */
+ static const int sloppyfocus               = 1;  /* focus follows mouse */
+ static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
++static const int smartborders              = 1;
+ static const unsigned int borderpx         = 1;  /* border pixel of windows */
+ static const float rootcolor[]             = COLOR(0x222222ff);
+ static const float bordercolor[]           = COLOR(0x444444ff);
 diff --git a/dwl.c b/dwl.c
-index edf0cf1..4b7adc8 100644
+index 10d5a5b..903afc6 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -236,6 +236,7 @@ static void arrange(Monitor *m);
- static void arrangelayer(Monitor *m, struct wl_list *list,
- 		struct wlr_box *usable_area, int exclusive);
- static void arrangelayers(Monitor *m);
-+static void autostartexec(void);
- static void axisnotify(struct wl_listener *listener, void *data);
- static void buttonpress(struct wl_listener *listener, void *data);
- static void chvt(const Arg *arg);
-@@ -403,6 +404,9 @@ static xcb_atom_t netatom[NetLast];
- /* attempt to encapsulate suck into one file */
- #include "client.h"
- 
-+static pid_t *autostart_pids;
-+static size_t autostart_len;
-+
- /* function implementations */
- void
- applybounds(Client *c, struct wlr_box *bbox)
-@@ -533,6 +537,27 @@ arrangelayers(Monitor *m)
+@@ -297,7 +297,7 @@ static void rendermon(struct wl_listener *listener, void *data);
+ static void requestdecorationmode(struct wl_listener *listener, void *data);
+ static void requeststartdrag(struct wl_listener *listener, void *data);
+ static void requestmonstate(struct wl_listener *listener, void *data);
+-static void resize(Client *c, struct wlr_box geo, int interact);
++static void resize(Client *c, struct wlr_box geo, int interact, int draw_borders);
+ static void run(char *startup_cmd);
+ static void setcursor(struct wl_listener *listener, void *data);
+ static void setcursorshape(struct wl_listener *listener, void *data);
+@@ -696,7 +696,7 @@ closemon(Monitor *m)
+ 	wl_list_for_each(c, &clients, link) {
+ 		if (c->isfloating && c->geom.x > m->m.width)
+ 			resize(c, (struct wlr_box){.x = c->geom.x - m->w.width, .y = c->geom.y,
+-					.width = c->geom.width, .height = c->geom.height}, 0);
++					.width = c->geom.width, .height = c->geom.height}, 0, 1);
+ 		if (c->mon == m)
+ 			setmon(c, selmon, c->tags);
  	}
+@@ -731,8 +731,12 @@ commitnotify(struct wl_listener *listener, void *data)
+ {
+ 	Client *c = wl_container_of(listener, c, commit);
+ 
+-	if (client_surface(c)->mapped)
+-		resize(c, c->geom, (c->isfloating && !c->isfullscreen));
++	if (client_surface(c)->mapped) {
++		if (c->mon && c->mon->lt[c->mon->sellt]->arrange && !c->isfullscreen && !c->isfloating)
++			c->mon->lt[c->mon->sellt]->arrange(c->mon);
++		else
++			resize(c, c->geom, (c->isfloating && !c->isfullscreen), (c->isfloating && !c->isfullscreen));
++	}
+ 
+ 	/* mark a pending resize as completed */
+ 	if (c->resize && c->resize <= c->surface.xdg->current.configure_serial)
+@@ -1579,7 +1583,7 @@ monocle(Monitor *m)
+ 	wl_list_for_each(c, &clients, link) {
+ 		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
+ 			continue;
+-		resize(c, m->w, 0);
++		resize(c, m->w, 0, !smartborders);
+ 		n++;
+ 	}
+ 	if (n)
+@@ -1626,11 +1630,11 @@ motionnotify(uint32_t time)
+ 	if (cursor_mode == CurMove) {
+ 		/* Move the grabbed client to the new position. */
+ 		resize(grabc, (struct wlr_box){.x = cursor->x - grabcx, .y = cursor->y - grabcy,
+-			.width = grabc->geom.width, .height = grabc->geom.height}, 1);
++			.width = grabc->geom.width, .height = grabc->geom.height}, 1, 1);
+ 		return;
+ 	} else if (cursor_mode == CurResize) {
+ 		resize(grabc, (struct wlr_box){.x = grabc->geom.x, .y = grabc->geom.y,
+-			.width = cursor->x - grabc->geom.x, .height = cursor->y - grabc->geom.y}, 1);
++			.width = cursor->x - grabc->geom.x, .height = cursor->y - grabc->geom.y}, 1, 1);
+ 		return;
+ 	}
+ 
+@@ -1924,12 +1928,13 @@ requestmonstate(struct wl_listener *listener, void *data)
  }
  
-+void
-+autostartexec(void) {
-+	const char *const *p;
-+	size_t i = 0;
-+
-+	/* count entries */
-+	for (p = autostart; *p; autostart_len++, p++)
-+		while (*++p);
-+
-+	autostart_pids = calloc(autostart_len, sizeof(pid_t));
-+	for (p = autostart; *p; i++, p++) {
-+		if ((autostart_pids[i] = fork()) == 0) {
-+			setsid();
-+			execvp(*p, (char *const *)p);
-+			die("dwl: execvp %s:", *p);
-+		}
-+		/* skip arguments */
-+		while (*++p);
-+	}
-+}
-+
  void
- axisnotify(struct wl_listener *listener, void *data)
+-resize(Client *c, struct wlr_box geo, int interact)
++resize(Client *c, struct wlr_box geo, int interact, int draw_borders)
  {
-@@ -630,11 +655,21 @@ checkidleinhibitor(struct wlr_surface *exclude)
- void
- cleanup(void)
- {
-+	size_t i;
- #ifdef XWAYLAND
- 	wlr_xwayland_destroy(xwayland);
- 	xwayland = NULL;
- #endif
- 	wl_display_destroy_clients(dpy);
-+
-+	/* kill child processes */
-+	for (i = 0; i < autostart_len; i++) {
-+		if (0 < autostart_pids[i]) {
-+			kill(autostart_pids[i], SIGTERM);
-+			waitpid(autostart_pids[i], NULL, 0);
-+		}
-+	}
-+
- 	if (child_pid > 0) {
- 		kill(child_pid, SIGTERM);
- 		waitpid(child_pid, NULL, 0);
-@@ -1295,18 +1330,31 @@ void
- handlesig(int signo)
- {
- 	if (signo == SIGCHLD) {
--#ifdef XWAYLAND
- 		siginfo_t in;
- 		/* wlroots expects to reap the XWayland process itself, so we
- 		 * use WNOWAIT to keep the child waitable until we know it's not
- 		 * XWayland.
- 		 */
- 		while (!waitid(P_ALL, 0, &in, WEXITED|WNOHANG|WNOWAIT) && in.si_pid
--				&& (!xwayland || in.si_pid != xwayland->server->pid))
--			waitpid(in.si_pid, NULL, 0);
--#else
--		while (waitpid(-1, NULL, WNOHANG) > 0);
-+#ifdef XWAYLAND
-+			   && (!xwayland || in.si_pid != xwayland->server->pid)
- #endif
-+			   ) {
-+			pid_t *p, *lim;
-+			waitpid(in.si_pid, NULL, 0);
-+			if (in.si_pid == child_pid)
-+				child_pid = -1;
-+			if (!(p = autostart_pids))
-+				continue;
-+			lim = &p[autostart_len];
-+
-+			for (; p < lim; p++) {
-+				if (*p == in.si_pid) {
-+					*p = -1;
-+					break;
-+				}
-+			}
-+		}
- 	} else if (signo == SIGINT || signo == SIGTERM) {
- 		quit(NULL);
- 	}
-@@ -1966,6 +2014,7 @@ run(char *startup_cmd)
- 		die("startup: backend_start");
+ 	struct wlr_box *bbox = interact ? &sgeom : &c->mon->w;
+ 	struct wlr_box clip;
+ 	client_set_bounds(c, geo.width, geo.height);
+ 	c->geom = geo;
++	c->bw = draw_borders ? borderpx : 0;
+ 	applybounds(c, bbox);
  
- 	/* Now that the socket exists and the backend is started, run the startup command */
-+	autostartexec();
- 	if (startup_cmd) {
- 		int piperw[2];
- 		if (pipe(piperw) < 0)
+ 	/* Update scene-graph, including borders */
+@@ -2044,6 +2049,8 @@ setfloating(Client *c, int floating)
+ 		return;
+ 	wlr_scene_node_reparent(&c->scene->node, layers[c->isfullscreen
+ 			? LyrFS : c->isfloating ? LyrFloat : LyrTile]);
++	if (c->isfloating && !c->bw)
++		resize(c, c->mon->m, 0, 1);
+ 	arrange(c->mon);
+ 	printstatus();
+ }
+@@ -2061,11 +2068,11 @@ setfullscreen(Client *c, int fullscreen)
+ 
+ 	if (fullscreen) {
+ 		c->prev = c->geom;
+-		resize(c, c->mon->m, 0);
++		resize(c, c->mon->m, 0, 0);
+ 	} else {
+ 		/* restore previous size instead of arrange for floating windows since
+ 		 * client positions are set by the user and cannot be recalculated */
+-		resize(c, c->prev, 0);
++		resize(c, c->prev, 0, 1);
+ 	}
+ 	arrange(c->mon);
+ 	printstatus();
+@@ -2090,6 +2097,12 @@ setlayout(const Arg *arg)
+ 	if (arg && arg->v)
+ 		selmon->lt[selmon->sellt] = (Layout *)arg->v;
+ 	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, LENGTH(selmon->ltsymbol));
++	if (!selmon->lt[selmon->sellt]->arrange) {
++		/* floating layout, draw borders around all clients */
++		Client *c;
++		wl_list_for_each(c, &clients, link)
++			resize(c, c->mon->m, 0, 1);
++	}
+ 	arrange(selmon);
+ 	printstatus();
+ }
+@@ -2124,7 +2137,7 @@ setmon(Client *c, Monitor *m, uint32_t newtags)
+ 		arrange(oldmon);
+ 	if (m) {
+ 		/* Make sure window actually overlaps with the monitor */
+-		resize(c, c->geom, 0);
++		resize(c, c->geom, 0, 1);
+ 		c->tags = newtags ? newtags : m->tagset[m->seltags]; /* assign tags of target monitor */
+ 		setfullscreen(c, c->isfullscreen); /* This will call arrange(c->mon) */
+ 		setfloating(c, c->isfloating);
+@@ -2452,7 +2465,7 @@ tagmon(const Arg *arg)
+ void
+ tile(Monitor *m)
+ {
+-	unsigned int i, n = 0, mw, my, ty;
++	unsigned int i, n = 0, mw, my, ty, draw_borders = 1;
+ 	Client *c;
+ 
+ 	wl_list_for_each(c, &clients, link)
+@@ -2461,6 +2474,9 @@ tile(Monitor *m)
+ 	if (n == 0)
+ 		return;
+ 
++	if (n == smartborders)
++		draw_borders = 0;
++
+ 	if (n > m->nmaster)
+ 		mw = m->nmaster ? m->w.width * m->mfact : 0;
+ 	else
+@@ -2471,11 +2487,11 @@ tile(Monitor *m)
+ 			continue;
+ 		if (i < m->nmaster) {
+ 			resize(c, (struct wlr_box){.x = m->w.x, .y = m->w.y + my, .width = mw,
+-				.height = (m->w.height - my) / (MIN(n, m->nmaster) - i)}, 0);
++				.height = (m->w.height - my) / (MIN(n, m->nmaster) - i)}, 0, draw_borders);
+ 			my += c->geom.height;
+ 		} else {
+ 			resize(c, (struct wlr_box){.x = m->w.x + mw, .y = m->w.y + ty,
+-				.width = m->w.width - mw, .height = (m->w.height - ty) / (n - i)}, 0);
++				.width = m->w.width - mw, .height = (m->w.height - ty) / (n - i)}, 0, draw_borders);
+ 			ty += c->geom.height;
+ 		}
+ 		i++;
+@@ -2644,7 +2660,7 @@ updatemons(struct wl_listener *listener, void *data)
+ 		arrange(m);
+ 		/* make sure fullscreen clients have the right size */
+ 		if ((c = focustop(m)) && c->isfullscreen)
+-			resize(c, m->m, 0);
++			resize(c, m->m, 0, 0);
+ 
+ 		/* Try to re-set the gamma LUT when updating monitors,
+ 		 * it's only really needed when enabling a disabled output, but meh. */
+@@ -2826,7 +2842,7 @@ configurex11(struct wl_listener *listener, void *data)
+ 		return;
+ 	if (c->isfloating || client_is_unmanaged(c))
+ 		resize(c, (struct wlr_box){.x = event->x, .y = event->y,
+-				.width = event->width, .height = event->height}, 0);
++			        .width = event->width, .height = event->height}, 0, 1);
+ 	else
+ 		arrange(c->mon);
+ }
 -- 
 2.43.0
 
