@@ -30,7 +30,7 @@ Since dwl follows [suckless](https://suckless.org/) philosophy it doesn't provid
     ### Download
     - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/src/branch/main/PATCHNAME/PATCHNAME.patch)
 
-    ### Authors and Patch Repositories
+    ### Authors (link goes to patch repository in author's repo)
     - [YOURNAME](https://codeberg.org/YOURNAME/dwl/src/branch/PATCHNAME)
     ```
 9. Use this template to add your patch to the [wiki](https://codeberg.org/dwl/dwl-patches/wiki)'s categorized list and sidebar index:
