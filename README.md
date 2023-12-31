@@ -40,6 +40,9 @@ Since dwl follows [suckless] philosophy it doesn't provide every feature under t
     ```
 10. Keep your `PATCHNAME.patch` file AND the associated wiki page updated appropriately.
 
+## Updating/Modifying Existing Patches
+1. If the existing patch is being maintained by another author, do not make modifications to it without permission.
+2. If you have submitted a pull request to the previous author's repository and received no reply for after seven days, please feel free to edit the wiki page for the patch with your updated link. Do leave any previous author's nicks/links intact under the "Authors" heading.
 
 [dwl-patches]: https://codeberg.org/dwl/dwl-patches
 [Codeberg]: https://codeberg.org
