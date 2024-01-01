@@ -5,7 +5,11 @@ This repository and the associated wiki is exclusively for dwl PATCHES.
 ## Patching
 Since dwl follows [suckless] philosophy it doesn't provide every feature under the sun. To broaden dwl's functionality, one needs to get familiar with the concept of patching. To get your feet wet, consult [the hacking page] of the suckless website. Once you're ready to customize your build, proceed to the [dwl-patches wiki][wiki] which contains a categorized listing and a searchable sidebar index of all available patches.
 
-**Note**: these external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!
+Since dwl is still taking shape, patches may need to be updated after larger changes to the code. Feel free to contribute updated versions!
+
+**Note**: these external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!  
+
+## Compatible status bars
 
 ## Creating Patches
 1. Create a [Codeberg] account and fork the [dwl] repository.
