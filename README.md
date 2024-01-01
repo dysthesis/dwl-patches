@@ -9,8 +9,6 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 
 **Note**: these external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!  
 
-## Compatible status bars
-
 ## Creating Patches
 1. Create a [Codeberg] account and fork the [dwl] repository.
 2. Create a branch in your repository for the patch you are generating and maintaining. 
