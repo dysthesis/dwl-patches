@@ -7,7 +7,7 @@ Since dwl follows [suckless] philosophy it doesn't provide every feature under t
 
 Since dwl is still taking shape, patches may need to be updated after larger changes to the code. Feel free to contribute updated versions!
 
-**Note**: these external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!  
+**Note**: These external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!  
 
 ## Creating Patches
 1. Create a [Codeberg] account and fork the [dwl] repository.
