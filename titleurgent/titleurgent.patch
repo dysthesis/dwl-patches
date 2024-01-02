@@ -1,4 +1,4 @@
-From 853e2c854d92cff54badd6d55e5b2cd06f403202 Mon Sep 17 00:00:00 2001
+From 1a083c558cb49bb89ccb152301c4a004f9fa227c Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Fri, 29 Dec 2023 19:02:11 +1000
 Subject: [PATCH] titleurgent
@@ -9,7 +9,7 @@ Subject: [PATCH] titleurgent
  2 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index a8ed61d9..cb90e252 100644
+index a8ed61d9..f1deca87 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -21,11 +21,13 @@ static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 1.0}; /* You can al
@@ -25,7 +25,7 @@ index a8ed61d9..cb90e252 100644
 -	{ "firefox",  NULL,       1 << 8,       0,           -1 },
 +	{ "firefox",  NULL,       1 << 8,       0,           0,            -1 },
 +	{ "org.qutebrowser.qutebrowser",
-+		      NULL,       0,            0,           1,            -1 },
++	              NULL,       0,            0,           1,            -1 },
  };
  
  /* layout(s) */
