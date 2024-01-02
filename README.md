@@ -42,6 +42,9 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
     ```
 10. Keep your `PATCHNAME.patch` file AND the associated wiki page updated appropriately.
 
+## Reporting Issues
+Generally, patches have a link to the git branch of the author's fork linked in the wiki page. Please report issues with an author's patch in the appropriate branch of that author's fork. If you open an issue here regarding a patch's functionality, the issue will be closed with a reference to the instructions here.
+
 ## Updating/Modifying Existing Patches
 1. If the existing patch is being maintained by another author, do not make modifications to it without permission.
 2. If you have submitted a pull request to the previous author's repository and received no reply after seven days, please feel free to edit the wiki page for the patch with your updated link. Do leave any previous author's nicks/links intact under the "Authors" heading.
