@@ -31,8 +31,8 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 
     ### Download
     - [git branch](https://codeberg.org/USERNAME/dwl/src/branch/PATCHNAME)
-    - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/src/branch/main/PATCHNAME/PATCHNAME.patch)
-
+    - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/raw/branch/main/PATCHNAME/PATCHNAME.patch)
+                                               USE THE ^raw^ PATCH LINK HERE
     ### Authors
     - [YOUR_NICK](https://codeberg.org/USERNAME)
     ```
