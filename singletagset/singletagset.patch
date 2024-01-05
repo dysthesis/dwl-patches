@@ -1,16 +1,25 @@
-From 2311e2e20f533f1aae16581a6359ca871c7869cd Mon Sep 17 00:00:00 2001
+From 9a928ae856dfbabbdb0b90595e169d5bea34b62c Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Tue, 2 Jan 2024 10:22:31 +1000
 Subject: [PATCH] singletagset
 
 ---
- dwl.c | 87 +++++++++++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 79 insertions(+), 8 deletions(-)
+ dwl.c | 89 +++++++++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 80 insertions(+), 9 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 4d19357f..f84c8a27 100644
+index 4d19357..755c125 100644
 --- a/dwl.c
 +++ b/dwl.c
+@@ -66,7 +66,7 @@
+ #define MAX(A, B)               ((A) > (B) ? (A) : (B))
+ #define MIN(A, B)               ((A) < (B) ? (A) : (B))
+ #define CLEANMASK(mask)         (mask & ~WLR_MODIFIER_CAPS)
+-#define VISIBLEON(C, M)         ((M) && (C)->mon == (M) && ((C)->tags & (M)->tagset[(M)->seltags]))
++#define VISIBLEON(C, M)         ((M) && ((C)->tags & (M)->tagset[(M)->seltags]))
+ #define LENGTH(X)               (sizeof X / sizeof X[0])
+ #define END(A)                  ((A) + LENGTH(A))
+ #define TAGMASK                 ((1u << TAGCOUNT) - 1)
 @@ -236,6 +236,7 @@ static void arrange(Monitor *m);
  static void arrangelayer(Monitor *m, struct wl_list *list,
  		struct wlr_box *usable_area, int exclusive);
@@ -52,8 +61,8 @@ index 4d19357f..f84c8a27 100644
  	for (r = monrules; r < END(monrules); r++) {
  		if (!r->name || strstr(wlr_output->name, r->name)) {
  			m->m.x = r->x;
-@@ -1311,6 +1322,22 @@ handlesig(int signo)
- 	}
+@@ -1290,6 +1301,22 @@ fullscreennotify(struct wl_listener *listener, void *data)
+ 	setfullscreen(c, client_wants_fullscreen(c));
  }
  
 +size_t
@@ -73,7 +82,7 @@ index 4d19357f..f84c8a27 100644
 +}
 +
  void
- incnmaster(const Arg *arg)
+ handlesig(int signo)
  {
 @@ -1807,8 +1834,6 @@ printstatus(void)
  	wl_list_for_each(m, &mons, link) {
