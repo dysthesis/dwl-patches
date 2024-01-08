@@ -1,3 +1,13 @@
+From 2825a2e8b0dae5d7146ba9bb66e2a3b7265617d5 Mon Sep 17 00:00:00 2001
+From: Dhruva Sambrani <44899822+DhruvaSambrani@users.noreply.github.com>
+Date: Mon, 8 Jan 2024 14:54:39 +0100
+Subject: [PATCH] first skipfocus commit
+
+---
+ config.def.h | 6 +++---
+ dwl.c        | 9 ++++++++-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
+
 diff --git a/config.def.h b/config.def.h
 index a8ed61d..fc105de 100644
 --- a/config.def.h
@@ -18,7 +28,7 @@ index a8ed61d..fc105de 100644
  
  /* layout(s) */
 diff --git a/dwl.c b/dwl.c
-index 4d19357..3826f65 100644
+index 632dabf..a8c87e5 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -132,7 +132,7 @@ typedef struct {
@@ -58,3 +68,6 @@ index 4d19357..3826f65 100644
  	/* Raise client in stacking order if requested */
  	if (c && lift)
  		wlr_scene_node_raise_to_top(&c->scene->node);
+-- 
+2.43.0
+
