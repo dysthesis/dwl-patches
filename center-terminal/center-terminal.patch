@@ -1,0 +1,102 @@
+From 24710beb90ecd512f36510ffbd95b45076be5873 Mon Sep 17 00:00:00 2001
+From: Guido Cella <guido@guidocella.xyz>
+Date: Tue, 16 Jan 2024 18:49:59 +0100
+Subject: [PATCH] add a keybinding to center the terminal
+
+Add a keybinding that toggles centering the terminally horizontally when
+it's the only window, while still tiling multiple windows.
+
+This limits the width of long text making it easier to read, and avoids
+covering the wallpaper more than necessary.
+---
+ config.def.h |  1 +
+ dwl.c        | 19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+)
+
+diff --git a/config.def.h b/config.def.h
+index a85ca27..2055df9 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -139,6 +139,7 @@ static const Key keys[] = {
+ 	{ MODKEY,                    XKB_KEY_space,      setlayout,      {0} },
+ 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
+ 	{ MODKEY,                    XKB_KEY_e,         togglefullscreen, {0} },
++	{ MODKEY,                    XKB_KEY_v,          togglecenter,   {0} },
+ 	{ MODKEY,                    XKB_KEY_0,          view,           {.ui = ~0} },
+ 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_parenright, tag,            {.ui = ~0} },
+ 	{ MODKEY,                    XKB_KEY_comma,      focusmon,       {.i = WLR_DIRECTION_LEFT} },
+diff --git a/dwl.c b/dwl.c
+index 8ecdeb0..559c726 100644
+--- a/dwl.c
++++ b/dwl.c
+@@ -7,6 +7,7 @@
+ #include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <strings.h>
+ #include <sys/wait.h>
+ #include <time.h>
+ #include <unistd.h>
+@@ -134,6 +135,7 @@ typedef struct {
+ 	unsigned int bw;
+ 	uint32_t tags;
+ 	int isfloating, isurgent, isfullscreen;
++	bool centered;
+ 	uint32_t resize; /* configure serial of a pending resize */
+ } Client;
+ 
+@@ -318,6 +320,7 @@ static void startdrag(struct wl_listener *listener, void *data);
+ static void tag(const Arg *arg);
+ static void tagmon(const Arg *arg);
+ static void tile(Monitor *m);
++static void togglecenter(const Arg *arg);
+ static void togglefloating(const Arg *arg);
+ static void togglefullscreen(const Arg *arg);
+ static void toggletag(const Arg *arg);
+@@ -389,6 +392,8 @@ static struct wlr_box sgeom;
+ static struct wl_list mons;
+ static Monitor *selmon;
+ 
++static bool center;
++
+ #ifdef XWAYLAND
+ static void activatex11(struct wl_listener *listener, void *data);
+ static void associatex11(struct wl_listener *listener, void *data);
+@@ -455,6 +460,8 @@ applyrules(Client *c)
+ 		}
+ 	}
+ 	wlr_scene_node_reparent(&c->scene->node, layers[c->isfloating ? LyrFloat : LyrTile]);
++	if (!strcasecmp(appid, termcmd[0]))
++		c->centered = true;
+ 	setmon(c, mon, newtags);
+ }
+ 
+@@ -2509,6 +2516,11 @@ tile(Monitor *m)
+ 		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
+ 			continue;
+ 		if (i < m->nmaster) {
++			if (n == 1 && center && c->centered) {
++				resize(c, (struct wlr_box){.x = m->w.width / 4, .y = m->w.y,
++						.width = m->w.width / 2, .height = m->w.height - 2 * c->bw}, 0);
++				return;
++			}
+ 			resize(c, (struct wlr_box){.x = m->w.x, .y = m->w.y + my, .width = mw,
+ 				.height = (m->w.height - my) / (MIN(n, m->nmaster) - i)}, 0);
+ 			my += c->geom.height;
+@@ -2521,6 +2533,13 @@ tile(Monitor *m)
+ 	}
+ }
+ 
++void
++togglecenter(const Arg *arg)
++{
++	center = !center;
++	tile(selmon);
++}
++
+ void
+ togglefloating(const Arg *arg)
+ {
+-- 
+2.43.0
+
