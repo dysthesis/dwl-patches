@@ -1,6 +1,6 @@
-From 1bfd33f2429f99090bfde96ef26c9e028ef8ed9a Mon Sep 17 00:00:00 2001
+From 499a2e5887527bff3fb7319d82e9a84a45714c9f Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Tue, 16 Jan 2024 18:53:51 +0100
+Date: Wed, 17 Jan 2024 21:17:33 +0100
 Subject: [PATCH] cycle through tags
 
 ---
@@ -33,7 +33,7 @@ index 9009517..8d77ec0 100644
  	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[1]} },
 diff --git a/shiftview.c b/shiftview.c
 new file mode 100644
-index 0000000..2275564
+index 0000000..1b9979d
 --- /dev/null
 +++ b/shiftview.c
 @@ -0,0 +1,35 @@
@@ -44,7 +44,7 @@ index 0000000..2275564
 +{
 +	Arg a;
 +	Client *c;
-+	size_t ntags = tagcount;
++	int ntags = tagcount;
 +	bool visible = false;
 +	int i = arg->i;
 +	int count = 0;
