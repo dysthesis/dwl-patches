@@ -1,0 +1,114 @@
+From faa496be3c9db01ef03cc196c2aff7fd3c005567 Mon Sep 17 00:00:00 2001
+From: ldev <ldev@ldev.eu.org>
+Date: Sun, 15 Oct 2023 16:03:39 +0200
+Subject: [PATCH 1/2] focusdir
+
+---
+ config.def.h |  4 ++++
+ dwl.c        | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+)
+
+diff --git a/config.def.h b/config.def.h
+index 1677f6f..affedd5 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -114,6 +114,10 @@ static const Key keys[] = {
+ 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,     spawn,          {.v = termcmd} },
+ 	{ MODKEY,                    XKB_KEY_j,          focusstack,     {.i = +1} },
+ 	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
++	{ MODKEY|WLR_MODIFIER_CTRL,  XKB_KEY_h,          focusdir,       {.ui = 0} },
++	{ MODKEY|WLR_MODIFIER_CTRL,  XKB_KEY_l,          focusdir,       {.ui = 1} },
++	{ MODKEY|WLR_MODIFIER_CTRL,  XKB_KEY_k,          focusdir,       {.ui = 2} },
++	{ MODKEY|WLR_MODIFIER_CTRL,  XKB_KEY_j,          focusdir,       {.ui = 3} },
+ 	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
+ 	{ MODKEY,                    XKB_KEY_d,          incnmaster,     {.i = -1} },
+ 	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05} },
+diff --git a/dwl.c b/dwl.c
+index 4118fd8..82ad58c 100644
+--- a/dwl.c
++++ b/dwl.c
+@@ -258,6 +258,7 @@ static Monitor *dirtomon(enum wlr_direction dir);
+ static void focusclient(Client *c, int lift);
+ static void focusmon(const Arg *arg);
+ static void focusstack(const Arg *arg);
++static void focusdir(const Arg *arg);
+ static Client *focustop(Monitor *m);
+ static void fullscreennotify(struct wl_listener *listener, void *data);
+ static void handlesig(int signo);
+@@ -1309,6 +1310,48 @@ focusstack(const Arg *arg)
+ 	focusclient(c, 1);
+ }
+ 
++void focusdir(const Arg *arg)
++{
++	/* Focus the left, right, up, down client relative to the current focused client on selmon */
++	Client *c, *sel = focustop(selmon);
++	if (!sel || sel->isfullscreen)
++		return;
++  
++  int dist=INT_MAX;
++  Client *newsel = NULL;
++  int newdist=INT_MAX;
++  wl_list_for_each(c, &clients, link) {
++    if (!VISIBLEON(c, selmon))
++      continue; /* skip non visible windows */
++
++    if (arg->ui == 0 && sel->geom.x <= c->geom.x) {
++      /* Client isn't on our left */
++      continue;
++    }
++    if (arg->ui == 1 && sel->geom.x >= c->geom.x) {
++      /* Client isn't on our right */
++      continue;
++    }
++    if (arg->ui == 2 && sel->geom.y <= c->geom.y) {
++      /* Client isn't above us */
++      continue;
++    }
++    if (arg->ui == 3 && sel->geom.y >= c->geom.y) {
++      /* Client isn't below us */
++      continue;
++    }
++
++    dist=abs(sel->geom.x-c->geom.x)+abs(sel->geom.y-c->geom.y);
++    if (dist < newdist){
++      newdist = dist;
++      newsel=c;
++    }
++  }
++  if (newsel != NULL){
++    focusclient(newsel, 1);
++  }
++}
++
+ /* We probably should change the name of this, it sounds like
+  * will focus the topmost client of this mon, when actually will
+  * only return that client */
+-- 
+2.43.0
+
+
+From c0881e6b30468bd7758958b561ada4857ff157a5 Mon Sep 17 00:00:00 2001
+From: ldev <ldev@ldev.eu.org>
+Date: Mon, 4 Dec 2023 15:57:10 +0100
+Subject: [PATCH 2/2] added include for limits.h
+
+---
+ dwl.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/dwl.c b/dwl.c
+index 227c48c..0e02e28 100644
+--- a/dwl.c
++++ b/dwl.c
+@@ -1,6 +1,7 @@
+ /*
+  * See LICENSE file for copyright and license details.
+  */
++#include <limits.h>
+ #include <getopt.h>
+ #include <libinput.h>
+ #include <limits.h>
+-- 
+2.43.0
+
