@@ -1,4 +1,4 @@
-From 8e19199524b3fc0b7adbbc68427c1a9db98bd575 Mon Sep 17 00:00:00 2001
+From 9d50f0acc00cf608a6841b02821796b300126624 Mon Sep 17 00:00:00 2001
 From: A Frederick Christensen <dwl@ivories.org>
 Date: Sun, 14 Jan 2024 08:30:31 -0600
 Subject: [PATCH] Add SIMPLE touchscreen handling
@@ -40,7 +40,7 @@ happen, and I don't yet know how to fix it.
  1 file changed, 87 insertions(+)
 
 diff --git a/dwl.c b/dwl.c
-index a20c607..ce00134 100644
+index 76ed8aa..26dff23 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -45,6 +45,7 @@
@@ -50,8 +50,8 @@ index a20c607..ce00134 100644
 +#include <wlr/types/wlr_touch.h>
  #include <wlr/types/wlr_viewporter.h>
  #include <wlr/types/wlr_virtual_keyboard_v1.h>
- #include <wlr/types/wlr_xcursor_manager.h>
-@@ -253,6 +254,7 @@ static void createlocksurface(struct wl_listener *listener, void *data);
+ #include <wlr/types/wlr_virtual_pointer_v1.h>
+@@ -255,6 +256,7 @@ static void createlocksurface(struct wl_listener *listener, void *data);
  static void createmon(struct wl_listener *listener, void *data);
  static void createnotify(struct wl_listener *listener, void *data);
  static void createpointer(struct wlr_pointer *pointer);
@@ -59,7 +59,7 @@ index a20c607..ce00134 100644
  static void cursorframe(struct wl_listener *listener, void *data);
  static void destroydecoration(struct wl_listener *listener, void *data);
  static void destroydragicon(struct wl_listener *listener, void *data);
-@@ -319,6 +321,8 @@ static void togglefloating(const Arg *arg);
+@@ -321,6 +323,8 @@ static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
  static void toggletag(const Arg *arg);
  static void toggleview(const Arg *arg);
@@ -68,7 +68,7 @@ index a20c607..ce00134 100644
  static void unlocksession(struct wl_listener *listener, void *data);
  static void unmaplayersurfacenotify(struct wl_listener *listener, void *data);
  static void unmapnotify(struct wl_listener *listener, void *data);
-@@ -1006,6 +1010,50 @@ createpointer(struct wlr_pointer *pointer)
+@@ -1015,6 +1019,50 @@ createpointer(struct wlr_pointer *pointer)
  	wlr_cursor_attach_input_device(cursor, &pointer->base);
  }
  
@@ -119,7 +119,7 @@ index a20c607..ce00134 100644
  void
  cursorframe(struct wl_listener *listener, void *data)
  {
-@@ -1335,6 +1383,9 @@ inputdevice(struct wl_listener *listener, void *data)
+@@ -1344,6 +1392,9 @@ inputdevice(struct wl_listener *listener, void *data)
  	case WLR_INPUT_DEVICE_POINTER:
  		createpointer(wlr_pointer_from_input_device(device));
  		break;
@@ -129,7 +129,7 @@ index a20c607..ce00134 100644
  	default:
  		/* TODO handle other input device types */
  		break;
-@@ -2315,6 +2366,10 @@ setup(void)
+@@ -2320,6 +2371,10 @@ setup(void)
  	LISTEN_STATIC(&cursor->events.button, buttonpress);
  	LISTEN_STATIC(&cursor->events.axis, axisnotify);
  	LISTEN_STATIC(&cursor->events.frame, cursorframe);
@@ -140,7 +140,7 @@ index a20c607..ce00134 100644
  
  	cursor_shape_mgr = wlr_cursor_shape_manager_v1_create(dpy, 1);
  	LISTEN_STATIC(&cursor_shape_mgr->events.request_set_shape, setcursorshape);
-@@ -2528,6 +2583,38 @@ toggleview(const Arg *arg)
+@@ -2537,6 +2592,38 @@ toggleview(const Arg *arg)
  	printstatus();
  }
  
