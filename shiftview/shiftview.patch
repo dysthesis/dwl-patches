@@ -1,12 +1,12 @@
-From 499a2e5887527bff3fb7319d82e9a84a45714c9f Mon Sep 17 00:00:00 2001
+From 40f9140742277d0298988990264f4b6a738f8122 Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Wed, 17 Jan 2024 21:17:33 +0100
+Date: Sat, 27 Jan 2024 22:43:29 +0100
 Subject: [PATCH] cycle through tags
 
 ---
  config.def.h |  4 ++++
- shiftview.c  | 35 +++++++++++++++++++++++++++++++++++
- 2 files changed, 39 insertions(+)
+ shiftview.c  | 34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
  create mode 100644 shiftview.c
 
 diff --git a/config.def.h b/config.def.h
@@ -33,10 +33,10 @@ index 9009517..8d77ec0 100644
  	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[1]} },
 diff --git a/shiftview.c b/shiftview.c
 new file mode 100644
-index 0000000..1b9979d
+index 0000000..fa53db0
 --- /dev/null
 +++ b/shiftview.c
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,34 @@
 +// "arg->i" stores the number of tags to shift right (positive value)
 +//          or left (negative value)
 +void
@@ -44,7 +44,6 @@ index 0000000..1b9979d
 +{
 +	Arg a;
 +	Client *c;
-+	int ntags = tagcount;
 +	bool visible = false;
 +	int i = arg->i;
 +	int count = 0;
@@ -52,9 +51,9 @@ index 0000000..1b9979d
 +
 +	do {
 +		if (i > 0) // left circular shift
-+            nextseltags = (curseltags << i) | (curseltags >> (ntags - i));
++            nextseltags = (curseltags << i) | (curseltags >> (TAGCOUNT - i));
 +        else // right circular shift
-+			nextseltags = curseltags >> (-i) | (curseltags << (ntags + i));
++			nextseltags = curseltags >> (-i) | (curseltags << (TAGCOUNT + i));
 +
 +        // Check if the tag is visible
 +        wl_list_for_each(c, &clients, link) {
@@ -65,9 +64,9 @@ index 0000000..1b9979d
 +        }
 +
 +		i += arg->i;
-+    } while (!visible && ++count <= ntags);
++    } while (!visible && ++count <= TAGCOUNT);
 +
-+    if (count <= ntags) {
++    if (count <= TAGCOUNT) {
 +        a.i = nextseltags;
 +        view(&a);
 +    }
