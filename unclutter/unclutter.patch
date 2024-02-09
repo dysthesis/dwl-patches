@@ -1,6 +1,6 @@
-From fb4e7aa8a5f8d0d38c3b7c6362855198fcbdca02 Mon Sep 17 00:00:00 2001
+From 9527cf91cc8dc07a2c74f85460dc90120519190f Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Mon, 5 Feb 2024 12:30:58 +0100
+Date: Fri, 9 Feb 2024 14:57:32 +0100
 Subject: [PATCH] =?UTF-8?q?hide=20the=20mouse=20cursor=20if=20it=20isn?=
  =?UTF-8?q?=E2=80=99t=20being=20used?=
 MIME-Version: 1.0
@@ -9,8 +9,8 @@ Content-Transfer-Encoding: 8bit
 
 ---
  config.def.h |  2 ++
- dwl.c        | 42 ++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 42 insertions(+), 2 deletions(-)
+ dwl.c        | 46 ++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 46 insertions(+), 2 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index 9009517..a85ca27 100644
@@ -26,7 +26,7 @@ index 9009517..a85ca27 100644
  #define MODKEY WLR_MODIFIER_ALT
  
 diff --git a/dwl.c b/dwl.c
-index ae8df11..f26fe38 100644
+index fa76db2..2eb5447 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -271,6 +271,8 @@ static void focusmon(const Arg *arg);
@@ -47,7 +47,7 @@ index ae8df11..f26fe38 100644
  
  static struct wlr_scene_rect *root_bg;
  static struct wlr_session_lock_manager_v1 *session_lock_mgr;
-@@ -549,6 +553,7 @@ axisnotify(struct wl_listener *listener, void *data)
+@@ -548,6 +552,7 @@ axisnotify(struct wl_listener *listener, void *data)
  	 * for example when you move the scroll wheel. */
  	struct wlr_pointer_axis_event *event = data;
  	wlr_idle_notifier_v1_notify_activity(idle_notifier, seat);
@@ -55,7 +55,7 @@ index ae8df11..f26fe38 100644
  	/* TODO: allow usage of scroll whell for mousebindings, it can be implemented
  	 * checking the event's orientation and the delta of the event */
  	/* Notify the client with pointer focus of the axis event. */
-@@ -567,6 +572,7 @@ buttonpress(struct wl_listener *listener, void *data)
+@@ -566,6 +571,7 @@ buttonpress(struct wl_listener *listener, void *data)
  	const Button *b;
  
  	wlr_idle_notifier_v1_notify_activity(idle_notifier, seat);
@@ -63,7 +63,7 @@ index ae8df11..f26fe38 100644
  
  	switch (event->state) {
  	case WLR_BUTTON_PRESSED:
-@@ -1320,6 +1326,29 @@ handlesig(int signo)
+@@ -1320,6 +1326,33 @@ handlesig(int signo)
  	}
  }
  
@@ -84,6 +84,10 @@ index ae8df11..f26fe38 100644
 +int
 +hidecursor(void *data)
 +{
++	// uncomment this if using the pointer constraints PR
++	// if (active_constraint)
++	// 	return 1;
++
 +	wlr_cursor_unset_image(cursor);
 +	wlr_seat_pointer_notify_clear_focus(seat);
 +	cursor_hidden = true;
@@ -93,7 +97,7 @@ index ae8df11..f26fe38 100644
  void
  incnmaster(const Arg *arg)
  {
-@@ -1621,6 +1650,7 @@ motionnotify(uint32_t time)
+@@ -1620,6 +1653,7 @@ motionnotify(uint32_t time)
  	/* time is 0 in internal calls meant to restore pointer focus. */
  	if (time) {
  		wlr_idle_notifier_v1_notify_activity(idle_notifier, seat);
@@ -101,7 +105,7 @@ index ae8df11..f26fe38 100644
  
  		/* Update selmon (even while dragging a window) */
  		if (sloppyfocus)
-@@ -1656,7 +1686,7 @@ motionnotify(uint32_t time)
+@@ -1655,7 +1689,7 @@ motionnotify(uint32_t time)
  	/* If there's no client surface under the cursor, set the cursor image to a
  	 * default. This is what makes the cursor image appear when you move it
  	 * off of a client or over its border. */
@@ -110,7 +114,7 @@ index ae8df11..f26fe38 100644
  		wlr_cursor_set_xcursor(cursor, cursor_mgr, "default");
  
  	pointerfocus(c, surface, sx, sy, time);
-@@ -1799,7 +1829,10 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
+@@ -1798,7 +1832,10 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
  	/* Let the client know that the mouse cursor has entered one
  	 * of its surfaces, and make keyboard focus follow if desired.
  	 * wlroots makes this a no-op if surface is already focused */
@@ -122,7 +126,7 @@ index ae8df11..f26fe38 100644
  	wlr_seat_pointer_notify_motion(seat, time, sx, sy);
  
  }
-@@ -2002,6 +2035,7 @@ run(char *startup_cmd)
+@@ -2001,6 +2038,7 @@ run(char *startup_cmd)
  	 * monitor when displayed here */
  	wlr_cursor_warp_closest(cursor, NULL, cursor->x, cursor->y);
  	wlr_cursor_set_xcursor(cursor, cursor_mgr, "default");
@@ -130,7 +134,7 @@ index ae8df11..f26fe38 100644
  
  	/* Run the Wayland event loop. This does not return until you exit the
  	 * compositor. Starting the backend rigged up all of the necessary event
-@@ -2327,6 +2361,9 @@ setup(void)
+@@ -2328,6 +2366,9 @@ setup(void)
  	cursor_shape_mgr = wlr_cursor_shape_manager_v1_create(dpy, 1);
  	LISTEN_STATIC(&cursor_shape_mgr->events.request_set_shape, setcursorshape);
  
@@ -140,7 +144,7 @@ index ae8df11..f26fe38 100644
  	/*
  	 * Configures a seat, which is a single "seat" at which a user sits and
  	 * operates the computer. This conceptually includes up to one keyboard,
-@@ -2749,6 +2786,7 @@ virtualpointer(struct wl_listener *listener, void *data)
+@@ -2750,6 +2791,7 @@ virtualpointer(struct wl_listener *listener, void *data)
  	wlr_cursor_attach_input_device(cursor, &pointer.base);
  	if (event->suggested_output)
  		wlr_cursor_map_input_to_output(cursor, &pointer.base, event->suggested_output);
