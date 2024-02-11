@@ -1,4 +1,4 @@
-From 5fbb468e37b9a1e25e0e32462a2ca58758c3f824 Mon Sep 17 00:00:00 2001
+From 830f6ed5352d32a66c62f49b28439b2bcd904417 Mon Sep 17 00:00:00 2001
 From: Dima Krasner <dima@dimakrasner.com>
 Date: Sat, 2 Dec 2023 10:36:35 +0200
 Subject: [PATCH] fall back to a lower output mode if needed
@@ -9,10 +9,10 @@ Subject: [PATCH] fall back to a lower output mode if needed
  1 file changed, 12 insertions(+), 1 deletion(-)
 
 diff --git a/dwl.c b/dwl.c
-index bbb27e4..ea2a3cb 100644
+index fa76db2..88cabeb 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -856,6 +856,7 @@ createmon(struct wl_listener *listener, void *data)
+@@ -848,6 +848,7 @@ createmon(struct wl_listener *listener, void *data)
  	/* This event is raised by the backend when a new output (aka a display or
  	 * monitor) becomes available. */
  	struct wlr_output *wlr_output = data;
@@ -20,7 +20,7 @@ index bbb27e4..ea2a3cb 100644
  	const MonitorRule *r;
  	size_t i;
  	struct wlr_output_state state;
-@@ -890,7 +891,17 @@ createmon(struct wl_listener *listener, void *data)
+@@ -884,7 +885,17 @@ createmon(struct wl_listener *listener, void *data)
  	 * monitor supports only a specific set of modes. We just pick the
  	 * monitor's preferred mode; a more sophisticated compositor would let
  	 * the user configure it. */
@@ -39,3 +39,6 @@ index bbb27e4..ea2a3cb 100644
  
  	/* Set up event listeners */
  	LISTEN(&wlr_output->events.frame, &m->frame, rendermon);
+-- 
+2.43.0
+
