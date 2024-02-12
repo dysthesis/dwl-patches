@@ -1,12 +1,12 @@
-From a262919c27dca5735441e68f16dc6e03f625c762 Mon Sep 17 00:00:00 2001
+From a0e71a687b7fcaebdaf1da80c09bf5563bff46b1 Mon Sep 17 00:00:00 2001
 From: ldev <ldev@ldev.eu.org>
-Date: Mon, 22 Jan 2024 15:01:37 +0100
+Date: Mon, 12 Feb 2024 21:50:24 +0100
 Subject: [PATCH] focusdir
 
 ---
  config.def.h |  4 ++++
- dwl.c        | 47 ++++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 50 insertions(+), 1 deletion(-)
+ dwl.c        | 45 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
 diff --git a/config.def.h b/config.def.h
 index 9009517..2a1a82e 100644
@@ -24,7 +24,7 @@ index 9009517..2a1a82e 100644
  	{ MODKEY,                    XKB_KEY_d,          incnmaster,     {.i = -1} },
  	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },
 diff --git a/dwl.c b/dwl.c
-index bf02a6d..e051a83 100644
+index bf02a6d..64d5de7 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -1,6 +1,7 @@
@@ -43,12 +43,8 @@ index bf02a6d..e051a83 100644
  static Client *focustop(Monitor *m);
  static void fullscreennotify(struct wl_listener *listener, void *data);
  static void handlesig(int signo);
-@@ -1268,9 +1270,52 @@ focusstack(const Arg *arg)
- 		}
- 	}
- 	/* If only one client is visible on selmon, then c == sel */
--	focusclient(c, 1);
-+  focusclient(c, 1);
+@@ -1271,6 +1273,49 @@ focusstack(const Arg *arg)
+ 	focusclient(c, 1);
  }
  
 +void focusdir(const Arg *arg)
