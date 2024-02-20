@@ -1,4 +1,4 @@
-From 04cd2abb0f8775e5ceb9ee8c8facf3fcd57c26c9 Mon Sep 17 00:00:00 2001
+From abae607402efeaf16f6e7ea8c50ee86d6847e431 Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Mon, 23 Oct 2023 10:35:17 +0800
 Subject: [PATCH] implement dwl-ipc-unstable-v2
@@ -57,7 +57,7 @@ index 9009517..3467fed 100644
  	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
  	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
 diff --git a/dwl.c b/dwl.c
-index fa76db2..24d40c3 100644
+index fa76db2..1157c1b 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -61,6 +61,7 @@
@@ -161,7 +161,7 @@ index fa76db2..24d40c3 100644
 +
 +	zdwl_ipc_manager_v2_send_tags(manager_resource, TAGCOUNT);
 +
-+	for (int i = 0; i < LENGTH(layouts); i++)
++	for (unsigned int i = 0; i < LENGTH(layouts); i++)
 +		zdwl_ipc_manager_v2_send_layout(manager_resource, layouts[i].symbol);
 +}
 +
