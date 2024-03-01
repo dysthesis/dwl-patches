@@ -1,14 +1,14 @@
-From c57875c8ba5753f5ee43e0ee4b5d60e10cd329b2 Mon Sep 17 00:00:00 2001
+From 89541d26f33a8a4378e8bfd61b845848b4884d27 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Tue, 20 Feb 2024 19:08:03 +0300
+Date: Fri, 1 Mar 2024 18:46:25 +0300
 Subject: [PATCH] Implement dwm bar clone
 
 ---
  Makefile     |   2 +-
- config.def.h |  26 +++-
- dwl.c        | 416 +++++++++++++++++++++++++++++++++++++++++++--------
+ config.def.h |  29 +++-
+ dwl.c        | 427 +++++++++++++++++++++++++++++++++++++++++++--------
  utf8.h       |  55 +++++++
- 4 files changed, 427 insertions(+), 72 deletions(-)
+ 4 files changed, 441 insertions(+), 72 deletions(-)
  create mode 100644 utf8.h
 
 diff --git a/Makefile b/Makefile
@@ -25,10 +25,10 @@ index 0822ddc..7cf7289 100644
  LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
  
 diff --git a/config.def.h b/config.def.h
-index 9009517..5fe6f9d 100644
+index 9009517..bd008c9 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -7,15 +7,23 @@
+@@ -7,15 +7,25 @@
  static const int sloppyfocus               = 1;  /* focus follows mouse */
  static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
  static const unsigned int borderpx         = 1;  /* border pixel of windows */
@@ -41,8 +41,10 @@ index 9009517..5fe6f9d 100644
  static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
  
 +/* bar */
-+static const char *fonts[] = {"monospace:size=10"};
-+static const char *fontattrs = "dpi=96";
++static const int showbar        = 1; /* 0 means no bar */
++static const int topbar         = 1; /* 0 means bottom bar */
++static const char *fonts[]      = {"monospace:size=10"};
++static const char *fontattrs    = "dpi=96";
 +static pixman_color_t normbarfg = { 0xbbbb, 0xbbbb, 0xbbbb, 0xffff };
 +static pixman_color_t normbarbg = { 0x2222, 0x2222, 0x2222, 0xffff };
 +static pixman_color_t selbarfg  = { 0xeeee, 0xeeee, 0xeeee, 0xffff };
@@ -54,7 +56,15 @@ index 9009517..5fe6f9d 100644
  
  /* logging */
  static int log_level = WLR_ERROR;
-@@ -165,7 +173,15 @@ static const Key keys[] = {
+@@ -122,6 +132,7 @@ static const Key keys[] = {
+ 	/* modifier                  key                 function        argument */
+ 	{ MODKEY,                    XKB_KEY_p,          spawn,          {.v = menucmd} },
+ 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,     spawn,          {.v = termcmd} },
++	{ MODKEY,                    XKB_KEY_b,          togglebar,      {0} },
+ 	{ MODKEY,                    XKB_KEY_j,          focusstack,     {.i = +1} },
+ 	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
+ 	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
+@@ -165,7 +176,15 @@ static const Key keys[] = {
  };
  
  static const Button buttons[] = {
@@ -74,7 +84,7 @@ index 9009517..5fe6f9d 100644
 +	{ ClkTagBar,   MODKEY, BTN_RIGHT,  toggletag,      {0} },
  };
 diff --git a/dwl.c b/dwl.c
-index fa76db2..4b5ab49 100644
+index fa76db2..04d66e4 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -4,6 +4,7 @@
@@ -146,11 +156,12 @@ index fa76db2..4b5ab49 100644
  	struct wlr_box w; /* window area, layout-relative */
  	struct wl_list layers[4]; /* LayerSurface.link */
  	const Layout *lt[2];
-@@ -202,8 +212,15 @@ struct Monitor {
+@@ -201,9 +211,16 @@ struct Monitor {
+ 	float mfact;
  	int gamma_lut_changed;
  	int nmaster;
++	int showbar;
  	char ltsymbol[16];
-+	
  };
  
 +typedef struct {
@@ -192,7 +203,7 @@ index fa76db2..4b5ab49 100644
  static void quit(const Arg *arg);
  static void rendermon(struct wl_listener *listener, void *data);
  static void requestdecorationmode(struct wl_listener *listener, void *data);
-@@ -314,6 +338,7 @@ static void setsel(struct wl_listener *listener, void *data);
+@@ -314,9 +338,11 @@ static void setsel(struct wl_listener *listener, void *data);
  static void setup(void);
  static void spawn(const Arg *arg);
  static void startdrag(struct wl_listener *listener, void *data);
@@ -200,7 +211,11 @@ index fa76db2..4b5ab49 100644
  static void tag(const Arg *arg);
  static void tagmon(const Arg *arg);
  static void tile(Monitor *m);
-@@ -388,6 +413,17 @@ static struct wlr_box sgeom;
++static void togglebar(const Arg *arg);
+ static void togglefloating(const Arg *arg);
+ static void togglefullscreen(const Arg *arg);
+ static void toggletag(const Arg *arg);
+@@ -388,6 +414,17 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
  
@@ -218,17 +233,19 @@ index fa76db2..4b5ab49 100644
  #ifdef XWAYLAND
  static void activatex11(struct wl_listener *listener, void *data);
  static void associatex11(struct wl_listener *listener, void *data);
-@@ -514,6 +550,9 @@ arrangelayers(Monitor *m)
+@@ -514,6 +551,11 @@ arrangelayers(Monitor *m)
  	if (!m->wlr_output->enabled)
  		return;
  
-+	usable_area.height -= m->b.height;
-+	usable_area.y += m->b.height;
++	if (m->showbar) {
++		usable_area.height -= m->b.height;
++		usable_area.y += topbar ? m->b.height : 0;
++	}
 +
  	/* Arrange exclusive surfaces from top->bottom */
  	for (i = 3; i >= 0; i--)
  		arrangelayer(m, &m->layers[i], &usable_area, 1);
-@@ -556,17 +595,76 @@ axisnotify(struct wl_listener *listener, void *data)
+@@ -556,17 +598,77 @@ axisnotify(struct wl_listener *listener, void *data)
  			event->delta_discrete, event->source);
  }
  
@@ -286,8 +303,9 @@ index fa76db2..4b5ab49 100644
 +	if (c)
 +		click = ClkClient;
 +
-+	if ((node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) &&
-+		((buffer = wlr_scene_buffer_from_node(node)) && buffer == selmon->scene_buffer)) {
++	if ((node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) && 
++		(buffer = wlr_scene_buffer_from_node(node)) && buffer == selmon->scene_buffer) {
++		x = selmon->m.x;
 +		do
 +			x += TEXTW(tags[i]);
 +		while (cursor->x >= x && ++i < LENGTH(tags));
@@ -305,7 +323,7 @@ index fa76db2..4b5ab49 100644
  	switch (event->state) {
  	case WLR_BUTTON_PRESSED:
  		cursor_mode = CurPressed;
-@@ -575,16 +673,14 @@ buttonpress(struct wl_listener *listener, void *data)
+@@ -575,16 +677,14 @@ buttonpress(struct wl_listener *listener, void *data)
  			break;
  
  		/* Change focus if the button was _pressed_ over a client */
@@ -325,7 +343,7 @@ index fa76db2..4b5ab49 100644
  				return;
  			}
  		}
-@@ -658,6 +754,9 @@ cleanup(void)
+@@ -658,6 +758,9 @@ cleanup(void)
  	/* Destroy after the wayland display (when the monitors are already destroyed)
  	   to avoid destroying them with an invalid scene output. */
  	wlr_scene_node_destroy(&scene->tree.node);
@@ -335,7 +353,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -709,7 +808,7 @@ closemon(Monitor *m)
+@@ -709,7 +812,7 @@ closemon(Monitor *m)
  			setmon(c, selmon, c->tags);
  	}
  	focusclient(focustop(selmon), 1);
@@ -344,7 +362,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -895,8 +994,13 @@ createmon(struct wl_listener *listener, void *data)
+@@ -895,8 +998,14 @@ createmon(struct wl_listener *listener, void *data)
  	wlr_output_commit_state(wlr_output, &state);
  	wlr_output_state_finish(&state);
  
@@ -352,6 +370,7 @@ index fa76db2..4b5ab49 100644
 +	m->scene_buffer->point_accepts_input = bar_accepts_input;
 +	m->b.width = m->wlr_output->width;
 +	m->b.height = bh;
++	m->showbar = showbar;
 +
  	wl_list_insert(&mons, &m->link);
 -	printstatus();
@@ -359,7 +378,7 @@ index fa76db2..4b5ab49 100644
  
  	/* The xdg-protocol specifies:
  	 *
-@@ -1165,6 +1269,178 @@ dirtomon(enum wlr_direction dir)
+@@ -1165,6 +1274,179 @@ dirtomon(enum wlr_direction dir)
  	return selmon;
  }
  
@@ -459,7 +478,7 @@ index fa76db2..4b5ab49 100644
 +	Client *c;
 +	Buffer *buf;
 +
-+	if (!mon)
++	if (!mon || !mon->showbar)
 +		return;
 +
 +	stride = mon->b.width * 4;
@@ -495,13 +514,13 @@ index fa76db2..4b5ab49 100644
 +		sel = mon->tagset[mon->seltags] & 1 << i;
 +
 +		draw_rect(pix, x, 0, w, mon->b.height, 1,
-+			urg ? &selbarfg : (sel ? &selbarbg : &normbarbg));
++			urg & 1 << i ? &selbarfg : (sel ? &selbarbg : &normbarbg));
 +		draw_text(pix, x, 0, w, mon->b.height, lrpad / 2, tags[i],
-+			urg ? &selbarfg : (sel ? &selbarfg : &normbarfg));
++			urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
 +
 +		if (occ & 1 << i)
 +			draw_rect(pix, x + boxs, boxs, boxw, boxw,
-+				sel, sel ? &selbarfg : &normbarfg);
++				sel, urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
 +
 +		x += w;
 +	}
@@ -521,7 +540,8 @@ index fa76db2..4b5ab49 100644
 +	}
 +
 +	pixman_image_unref(pix);
-+	wlr_scene_node_set_position(&mon->scene_buffer->node, mon->m.x, mon->m.y);
++	wlr_scene_node_set_position(&mon->scene_buffer->node, mon->m.x,
++		mon->m.y + (topbar ? 0 : mon->m.height - mon->b.height));
 +	wlr_scene_buffer_set_buffer(mon->scene_buffer, &buf->base);
 +	wlr_buffer_drop(&buf->base);
 +}
@@ -538,7 +558,7 @@ index fa76db2..4b5ab49 100644
  void
  focusclient(Client *c, int lift)
  {
-@@ -1222,7 +1498,7 @@ focusclient(Client *c, int lift)
+@@ -1222,7 +1504,7 @@ focusclient(Client *c, int lift)
  			client_activate_surface(old, 0);
  		}
  	}
@@ -547,16 +567,7 @@ index fa76db2..4b5ab49 100644
  
  	if (!c) {
  		/* With no client, all we have left is to clear focus */
-@@ -1233,6 +1509,8 @@ focusclient(Client *c, int lift)
- 	/* Change cursor surface */
- 	motionnotify(0);
- 
-+
-+
- 	/* Have a client, so focus its top-level wlr_surface */
- 	client_notify_enter(client_surface(c), wlr_seat_get_keyboard(seat));
- 
-@@ -1550,7 +1828,7 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1550,7 +1832,7 @@ mapnotify(struct wl_listener *listener, void *data)
  	} else {
  		applyrules(c);
  	}
@@ -565,7 +576,7 @@ index fa76db2..4b5ab49 100644
  
  unset_fullscreen:
  	m = c->mon ? c->mon : xytomon(c->geom.x, c->geom.y);
-@@ -1803,46 +2081,6 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
+@@ -1803,46 +2085,6 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
  
  }
  
@@ -612,17 +623,16 @@ index fa76db2..4b5ab49 100644
  
  void
  quit(const Arg *arg)
-@@ -1989,7 +2227,8 @@ run(char *startup_cmd)
+@@ -1989,7 +2231,7 @@ run(char *startup_cmd)
  		close(piperw[1]);
  		close(piperw[0]);
  	}
 -	printstatus();
-+
 +	drawbars();
  
  	/* At this point the outputs are initialized, choose initial selmon based on
  	 * cursor position, and set default cursor image */
-@@ -2054,7 +2293,7 @@ setfloating(Client *c, int floating)
+@@ -2054,7 +2296,7 @@ setfloating(Client *c, int floating)
  			(p && p->isfullscreen) ? LyrFS
  			: c->isfloating ? LyrFloat : LyrTile]);
  	arrange(c->mon);
@@ -631,7 +641,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2077,7 +2316,7 @@ setfullscreen(Client *c, int fullscreen)
+@@ -2077,7 +2319,7 @@ setfullscreen(Client *c, int fullscreen)
  		resize(c, c->prev, 0);
  	}
  	arrange(c->mon);
@@ -640,16 +650,16 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2102,7 +2341,7 @@ setlayout(const Arg *arg)
+@@ -2102,7 +2344,7 @@ setlayout(const Arg *arg)
  		selmon->lt[selmon->sellt] = (Layout *)arg->v;
  	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, LENGTH(selmon->ltsymbol));
  	arrange(selmon);
 -	printstatus();
-+	drawbars();
++	drawbar(selmon);
  }
  
  /* arg > 1.0 will set mfact absolutely */
-@@ -2400,6 +2639,17 @@ setup(void)
+@@ -2400,6 +2642,17 @@ setup(void)
  
  	wlr_scene_set_presentation(scene, wlr_presentation_create(dpy, backend));
  
@@ -667,7 +677,7 @@ index fa76db2..4b5ab49 100644
  	/* Make sure XWayland clients don't connect to the parent X server,
  	 * e.g when running in the x11 backend or the wayland backend and the
  	 * compositor has Xwayland support */
-@@ -2442,6 +2692,28 @@ startdrag(struct wl_listener *listener, void *data)
+@@ -2442,6 +2695,28 @@ startdrag(struct wl_listener *listener, void *data)
  	LISTEN_STATIC(&drag->icon->events.destroy, destroydragicon);
  }
  
@@ -696,7 +706,7 @@ index fa76db2..4b5ab49 100644
  void
  tag(const Arg *arg)
  {
-@@ -2452,7 +2724,7 @@ tag(const Arg *arg)
+@@ -2452,7 +2727,7 @@ tag(const Arg *arg)
  	sel->tags = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -705,7 +715,22 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2525,7 +2797,7 @@ toggletag(const Arg *arg)
+@@ -2497,6 +2772,14 @@ tile(Monitor *m)
+ 	}
+ }
+ 
++void
++togglebar(const Arg *arg)
++{
++	selmon->showbar = !selmon->showbar;
++	wlr_scene_node_set_enabled(&selmon->scene_buffer->node, selmon->showbar);
++	arrangelayers(selmon);
++}
++
+ void
+ togglefloating(const Arg *arg)
+ {
+@@ -2525,7 +2808,7 @@ toggletag(const Arg *arg)
  	sel->tags = newtags;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -714,7 +739,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2538,7 +2810,7 @@ toggleview(const Arg *arg)
+@@ -2538,7 +2821,7 @@ toggleview(const Arg *arg)
  	selmon->tagset[selmon->seltags] = newtagset;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -723,7 +748,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2586,7 +2858,7 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2586,7 +2869,7 @@ unmapnotify(struct wl_listener *listener, void *data)
  	}
  
  	wlr_scene_node_destroy(&c->scene->node);
@@ -732,7 +757,7 @@ index fa76db2..4b5ab49 100644
  	motionnotify(0);
  }
  
-@@ -2622,6 +2894,7 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2622,6 +2905,7 @@ updatemons(struct wl_listener *listener, void *data)
  		if (m->wlr_output->enabled
  				&& !wlr_output_layout_get(output_layout, m->wlr_output))
  			wlr_output_layout_add_auto(output_layout, m->wlr_output);
@@ -740,7 +765,7 @@ index fa76db2..4b5ab49 100644
  	}
  
  	/* Now that we update the output layout we can get its box */
-@@ -2682,6 +2955,13 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2682,6 +2966,13 @@ updatemons(struct wl_listener *listener, void *data)
  		}
  	}
  
@@ -754,7 +779,7 @@ index fa76db2..4b5ab49 100644
  	/* FIXME: figure out why the cursor image is at 0,0 after turning all
  	 * the monitors on.
  	 * Move the cursor image where it used to be. It does not generate a
-@@ -2697,7 +2977,7 @@ updatetitle(struct wl_listener *listener, void *data)
+@@ -2697,7 +2988,7 @@ updatetitle(struct wl_listener *listener, void *data)
  {
  	Client *c = wl_container_of(listener, c, set_title);
  	if (c == focustop(c->mon))
@@ -763,7 +788,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2710,7 +2990,7 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2710,7 +3001,7 @@ urgent(struct wl_listener *listener, void *data)
  		return;
  
  	c->isurgent = 1;
@@ -772,7 +797,7 @@ index fa76db2..4b5ab49 100644
  
  	if (client_surface(c)->mapped)
  		client_set_border_color(c, urgentcolor);
-@@ -2726,7 +3006,7 @@ view(const Arg *arg)
+@@ -2726,7 +3017,7 @@ view(const Arg *arg)
  		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -781,7 +806,7 @@ index fa76db2..4b5ab49 100644
  }
  
  void
-@@ -2765,6 +3045,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2765,6 +3056,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  {
  	struct wlr_scene_node *node, *pnode;
  	struct wlr_surface *surface = NULL;
@@ -789,7 +814,7 @@ index fa76db2..4b5ab49 100644
  	Client *c = NULL;
  	LayerSurface *l = NULL;
  	int layer;
-@@ -2773,9 +3054,12 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2773,9 +3065,12 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  		if (!(node = wlr_scene_node_at(&layers[layer]->node, x, y, nx, ny)))
  			continue;
  
@@ -805,7 +830,7 @@ index fa76db2..4b5ab49 100644
  		/* Walk the tree to find a node that knows the client */
  		for (pnode = node; pnode && !c; pnode = &pnode->parent->node)
  			c = pnode->data;
-@@ -2914,7 +3198,7 @@ sethints(struct wl_listener *listener, void *data)
+@@ -2914,7 +3209,7 @@ sethints(struct wl_listener *listener, void *data)
  		return;
  
  	c->isurgent = xcb_icccm_wm_hints_get_urgency(c->surface.xwayland->hints);
@@ -875,6 +900,3 @@ index 0000000..c7db188
 +	*state = utf8d[256 + *state*16 + type];
 +	return *state;
 +}
--- 
-2.43.2
-
