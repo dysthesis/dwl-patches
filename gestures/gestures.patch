@@ -1,3 +1,16 @@
+From a68af2e251dcc0cccef32a3cbbbe44481ed32576 Mon Sep 17 00:00:00 2001
+From: wochap <gean.marroquin@gmail.com>
+Date: Wed, 6 Mar 2024 10:35:18 -0500
+Subject: [PATCH] add swipe gestures to trigger functions
+
+like libinput-gestures, it supports the following gestures: SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT and SWIPE_RIGHT
+support multiple fingers count in gestures[]
+support mods in gestures[]
+---
+ config.def.h |  9 +++++++
+ dwl.c        | 68 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 77 insertions(+)
+
 diff --git a/config.def.h b/config.def.h
 index db0babc..e2ec245 100644
 --- a/config.def.h
@@ -155,4 +168,6 @@ index 2aeaca1..fd7ab00 100644
  	// Forward swipe end event to client
  	wlr_pointer_gestures_v1_send_swipe_end(
  		pointer_gestures, 
+-- 
+2.42.0
 
