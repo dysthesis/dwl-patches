@@ -1,6 +1,6 @@
-From 703ed4801b654d1af7c35c2e19e3bf27160414d5 Mon Sep 17 00:00:00 2001
+From f11a867df009e3dc786caab519e231967b3fba2a Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Mon, 11 Mar 2024 18:47:47 +0100
+Date: Mon, 11 Mar 2024 18:55:02 +0100
 Subject: [PATCH] =?UTF-8?q?hide=20the=20mouse=20cursor=20if=20it=20isn?=
  =?UTF-8?q?=E2=80=99t=20being=20used?=
 MIME-Version: 1.0
@@ -26,7 +26,7 @@ index 9009517..a85ca27 100644
  #define MODKEY WLR_MODIFIER_ALT
  
 diff --git a/dwl.c b/dwl.c
-index d508d79..a90e68a 100644
+index d508d79..5ec83db 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -283,6 +283,8 @@ static void focusmon(const Arg *arg);
@@ -77,7 +77,7 @@ index d508d79..a90e68a 100644
 +		cursor_hidden = false;
 +
 +		if (restore_focus)
-+			motionnotify(0);
++			motionnotify(0, NULL, 0, 0, 0, 0);
 +	}
 +}
 +
