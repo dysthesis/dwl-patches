@@ -286,13 +286,13 @@ index 5867b0c..e613d17 100644
 +			return;
 +	}
 +
-+	if (c->mon->lt[c->mon->sellt]->render_top_only == 1 && c != sel) {
++	if (c->mon->lt[c->mon->sellt]->render_top_only == 1 && !c->isfloating && c != sel) {
 +		c->istabbed = 1;
 +		return;
-+	} else if (c->mon->lt[c->mon->sellt]->render_top_only == 2 && c != sel) {
++	} /*else if (c->mon->lt[c->mon->sellt]->render_top_only == 2 && c != sel) {
 +		c->istabbed = 1;
 +		return;
-+	}
++	}*/
 +
 +	if (title_type == LAYOUT_TYPE_NONE)
 +		return;
