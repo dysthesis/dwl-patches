@@ -1,4 +1,4 @@
-From 89541d26f33a8a4378e8bfd61b845848b4884d27 Mon Sep 17 00:00:00 2001
+From a298e753fecd8ff20879ee8946be9fb44bf7d60b Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
 Date: Fri, 1 Mar 2024 18:46:25 +0300
 Subject: [PATCH] Implement dwm bar clone
@@ -6,13 +6,13 @@ Subject: [PATCH] Implement dwm bar clone
 ---
  Makefile     |   2 +-
  config.def.h |  29 +++-
- dwl.c        | 427 +++++++++++++++++++++++++++++++++++++++++++--------
+ dwl.c        | 430 +++++++++++++++++++++++++++++++++++++++++++--------
  utf8.h       |  55 +++++++
- 4 files changed, 441 insertions(+), 72 deletions(-)
+ 4 files changed, 444 insertions(+), 72 deletions(-)
  create mode 100644 utf8.h
 
 diff --git a/Makefile b/Makefile
-index 0822ddc..7cf7289 100644
+index a67fdd3..5578ae2 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -9,7 +9,7 @@ DWLDEVCFLAGS = -g -pedantic -Wall -Wextra -Wdeclaration-after-statement -Wno-unu
@@ -84,7 +84,7 @@ index 9009517..bd008c9 100644
 +	{ ClkTagBar,   MODKEY, BTN_RIGHT,  toggletag,      {0} },
  };
 diff --git a/dwl.c b/dwl.c
-index fa76db2..04d66e4 100644
+index 5867b0c..8341134 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -4,6 +4,7 @@
@@ -95,18 +95,19 @@ index fa76db2..04d66e4 100644
  #include <signal.h>
  #include <stdio.h>
  #include <stdlib.h>
-@@ -53,7 +54,10 @@
+@@ -55,8 +56,11 @@
  #include <wlr/types/wlr_xdg_decoration_v1.h>
  #include <wlr/types/wlr_xdg_output_v1.h>
  #include <wlr/types/wlr_xdg_shell.h>
 +#include <wlr/interfaces/wlr_buffer.h>
  #include <wlr/util/log.h>
+ #include <wlr/util/region.h>
 +#include <fcft/fcft.h>
 +#include <pixman-1/pixman.h>
  #include <xkbcommon/xkbcommon.h>
  #ifdef XWAYLAND
  #include <wlr/xwayland.h>
-@@ -62,6 +66,7 @@
+@@ -65,6 +69,7 @@
  #endif
  
  #include "util.h"
@@ -114,7 +115,7 @@ index fa76db2..04d66e4 100644
  
  /* macros */
  #define MAX(A, B)               ((A) > (B) ? (A) : (B))
-@@ -71,14 +76,16 @@
+@@ -74,14 +79,16 @@
  #define VISIBLEON(C, M)         ((M) && (C)->mon == (M) && ((C)->tags & (M)->tagset[(M)->seltags]))
  #define LENGTH(X)               (sizeof X / sizeof X[0])
  #define END(A)                  ((A) + LENGTH(A))
@@ -132,7 +133,7 @@ index fa76db2..04d66e4 100644
  #ifdef XWAYLAND
  enum { NetWMWindowTypeDialog, NetWMWindowTypeSplash, NetWMWindowTypeToolbar,
  	NetWMWindowTypeUtility, NetLast }; /* EWMH atoms */
-@@ -92,6 +99,7 @@ typedef union {
+@@ -95,6 +102,7 @@ typedef union {
  } Arg;
  
  typedef struct {
@@ -140,7 +141,7 @@ index fa76db2..04d66e4 100644
  	unsigned int mod;
  	unsigned int button;
  	void (*func)(const Arg *);
-@@ -185,6 +193,7 @@ struct Monitor {
+@@ -188,6 +196,7 @@ struct Monitor {
  	struct wl_list link;
  	struct wlr_output *wlr_output;
  	struct wlr_scene_output *scene_output;
@@ -148,7 +149,7 @@ index fa76db2..04d66e4 100644
  	struct wlr_scene_rect *fullscreen_bg; /* See createmon() for info */
  	struct wl_listener frame;
  	struct wl_listener destroy;
-@@ -192,6 +201,7 @@ struct Monitor {
+@@ -195,6 +204,7 @@ struct Monitor {
  	struct wl_listener destroy_lock_surface;
  	struct wlr_session_lock_surface_v1 *lock_surface;
  	struct wlr_box m; /* monitor area, layout-relative */
@@ -156,7 +157,7 @@ index fa76db2..04d66e4 100644
  	struct wlr_box w; /* window area, layout-relative */
  	struct wl_list layers[4]; /* LayerSurface.link */
  	const Layout *lt[2];
-@@ -201,9 +211,16 @@ struct Monitor {
+@@ -204,9 +214,16 @@ struct Monitor {
  	float mfact;
  	int gamma_lut_changed;
  	int nmaster;
@@ -173,7 +174,7 @@ index fa76db2..04d66e4 100644
  typedef struct {
  	const char *name;
  	float mfact;
-@@ -239,6 +256,10 @@ static void arrangelayer(Monitor *m, struct wl_list *list,
+@@ -247,6 +264,10 @@ static void arrangelayer(Monitor *m, struct wl_list *list,
  		struct wlr_box *usable_area, int exclusive);
  static void arrangelayers(Monitor *m);
  static void axisnotify(struct wl_listener *listener, void *data);
@@ -184,7 +185,7 @@ index fa76db2..04d66e4 100644
  static void buttonpress(struct wl_listener *listener, void *data);
  static void chvt(const Arg *arg);
  static void checkidleinhibitor(struct wlr_surface *exclude);
-@@ -266,6 +287,10 @@ static void destroynotify(struct wl_listener *listener, void *data);
+@@ -278,6 +299,10 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
  static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroysessionmgr(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
@@ -195,7 +196,7 @@ index fa76db2..04d66e4 100644
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
  static void focusstack(const Arg *arg);
-@@ -293,7 +318,6 @@ static void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int
+@@ -306,7 +331,6 @@ static void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int
  static void outputmgrtest(struct wl_listener *listener, void *data);
  static void pointerfocus(Client *c, struct wlr_surface *surface,
  		double sx, double sy, uint32_t time);
@@ -203,7 +204,7 @@ index fa76db2..04d66e4 100644
  static void quit(const Arg *arg);
  static void rendermon(struct wl_listener *listener, void *data);
  static void requestdecorationmode(struct wl_listener *listener, void *data);
-@@ -314,9 +338,11 @@ static void setsel(struct wl_listener *listener, void *data);
+@@ -327,9 +351,11 @@ static void setsel(struct wl_listener *listener, void *data);
  static void setup(void);
  static void spawn(const Arg *arg);
  static void startdrag(struct wl_listener *listener, void *data);
@@ -215,7 +216,7 @@ index fa76db2..04d66e4 100644
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
  static void toggletag(const Arg *arg);
-@@ -388,6 +414,17 @@ static struct wlr_box sgeom;
+@@ -405,6 +431,18 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
  
@@ -223,6 +224,7 @@ index fa76db2..04d66e4 100644
 +static int bh;
 +static int lrpad;
 +static char stext[256];
++static struct wl_event_source *status_event_source;
 +
 +static const struct wlr_buffer_impl buffer_impl = {
 +    .destroy = buffer_destroy,
@@ -233,7 +235,7 @@ index fa76db2..04d66e4 100644
  #ifdef XWAYLAND
  static void activatex11(struct wl_listener *listener, void *data);
  static void associatex11(struct wl_listener *listener, void *data);
-@@ -514,6 +551,11 @@ arrangelayers(Monitor *m)
+@@ -531,6 +569,11 @@ arrangelayers(Monitor *m)
  	if (!m->wlr_output->enabled)
  		return;
  
@@ -245,7 +247,7 @@ index fa76db2..04d66e4 100644
  	/* Arrange exclusive surfaces from top->bottom */
  	for (i = 3; i >= 0; i--)
  		arrangelayer(m, &m->layers[i], &usable_area, 1);
-@@ -556,17 +598,77 @@ axisnotify(struct wl_listener *listener, void *data)
+@@ -573,17 +616,77 @@ axisnotify(struct wl_listener *listener, void *data)
  			event->delta_discrete, event->source);
  }
  
@@ -323,7 +325,7 @@ index fa76db2..04d66e4 100644
  	switch (event->state) {
  	case WLR_BUTTON_PRESSED:
  		cursor_mode = CurPressed;
-@@ -575,16 +677,14 @@ buttonpress(struct wl_listener *listener, void *data)
+@@ -592,16 +695,14 @@ buttonpress(struct wl_listener *listener, void *data)
  			break;
  
  		/* Change focus if the button was _pressed_ over a client */
@@ -343,7 +345,7 @@ index fa76db2..04d66e4 100644
  				return;
  			}
  		}
-@@ -658,6 +758,9 @@ cleanup(void)
+@@ -675,6 +776,9 @@ cleanup(void)
  	/* Destroy after the wayland display (when the monitors are already destroyed)
  	   to avoid destroying them with an invalid scene output. */
  	wlr_scene_node_destroy(&scene->tree.node);
@@ -353,7 +355,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -709,7 +812,7 @@ closemon(Monitor *m)
+@@ -726,7 +830,7 @@ closemon(Monitor *m)
  			setmon(c, selmon, c->tags);
  	}
  	focusclient(focustop(selmon), 1);
@@ -362,7 +364,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -895,8 +998,14 @@ createmon(struct wl_listener *listener, void *data)
+@@ -912,8 +1016,14 @@ createmon(struct wl_listener *listener, void *data)
  	wlr_output_commit_state(wlr_output, &state);
  	wlr_output_state_finish(&state);
  
@@ -378,7 +380,7 @@ index fa76db2..04d66e4 100644
  
  	/* The xdg-protocol specifies:
  	 *
-@@ -1165,6 +1274,179 @@ dirtomon(enum wlr_direction dir)
+@@ -1233,6 +1343,179 @@ dirtomon(enum wlr_direction dir)
  	return selmon;
  }
  
@@ -558,7 +560,7 @@ index fa76db2..04d66e4 100644
  void
  focusclient(Client *c, int lift)
  {
-@@ -1222,7 +1504,7 @@ focusclient(Client *c, int lift)
+@@ -1290,7 +1573,7 @@ focusclient(Client *c, int lift)
  			client_activate_surface(old, 0);
  		}
  	}
@@ -567,7 +569,7 @@ index fa76db2..04d66e4 100644
  
  	if (!c) {
  		/* With no client, all we have left is to clear focus */
-@@ -1550,7 +1832,7 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1618,7 +1901,7 @@ mapnotify(struct wl_listener *listener, void *data)
  	} else {
  		applyrules(c);
  	}
@@ -576,8 +578,8 @@ index fa76db2..04d66e4 100644
  
  unset_fullscreen:
  	m = c->mon ? c->mon : xytomon(c->geom.x, c->geom.y);
-@@ -1803,46 +2085,6 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
- 
+@@ -1904,46 +2187,6 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
+ 	wlr_seat_pointer_notify_motion(seat, time, sx, sy);
  }
  
 -void
@@ -623,7 +625,7 @@ index fa76db2..04d66e4 100644
  
  void
  quit(const Arg *arg)
-@@ -1989,7 +2231,7 @@ run(char *startup_cmd)
+@@ -2090,7 +2333,7 @@ run(char *startup_cmd)
  		close(piperw[1]);
  		close(piperw[0]);
  	}
@@ -632,7 +634,7 @@ index fa76db2..04d66e4 100644
  
  	/* At this point the outputs are initialized, choose initial selmon based on
  	 * cursor position, and set default cursor image */
-@@ -2054,7 +2296,7 @@ setfloating(Client *c, int floating)
+@@ -2155,7 +2398,7 @@ setfloating(Client *c, int floating)
  			(p && p->isfullscreen) ? LyrFS
  			: c->isfloating ? LyrFloat : LyrTile]);
  	arrange(c->mon);
@@ -641,7 +643,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2077,7 +2319,7 @@ setfullscreen(Client *c, int fullscreen)
+@@ -2178,7 +2421,7 @@ setfullscreen(Client *c, int fullscreen)
  		resize(c, c->prev, 0);
  	}
  	arrange(c->mon);
@@ -650,7 +652,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2102,7 +2344,7 @@ setlayout(const Arg *arg)
+@@ -2203,7 +2446,7 @@ setlayout(const Arg *arg)
  		selmon->lt[selmon->sellt] = (Layout *)arg->v;
  	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, LENGTH(selmon->ltsymbol));
  	arrange(selmon);
@@ -659,7 +661,7 @@ index fa76db2..04d66e4 100644
  }
  
  /* arg > 1.0 will set mfact absolutely */
-@@ -2400,6 +2642,17 @@ setup(void)
+@@ -2506,6 +2749,17 @@ setup(void)
  
  	wlr_scene_set_presentation(scene, wlr_presentation_create(dpy, backend));
  
@@ -671,13 +673,13 @@ index fa76db2..04d66e4 100644
 +	lrpad = font->height;
 +	bh = font->height + 2;
 +
-+	wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
++	status_event_source = wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
 +		STDIN_FILENO, WL_EVENT_READABLE, status_in, NULL);
 +
  	/* Make sure XWayland clients don't connect to the parent X server,
  	 * e.g when running in the x11 backend or the wayland backend and the
  	 * compositor has Xwayland support */
-@@ -2442,6 +2695,28 @@ startdrag(struct wl_listener *listener, void *data)
+@@ -2548,6 +2802,30 @@ startdrag(struct wl_listener *listener, void *data)
  	LISTEN_STATIC(&drag->icon->events.destroy, destroydragicon);
  }
  
@@ -689,6 +691,8 @@ index fa76db2..04d66e4 100644
 +
 +	if (mask & WL_EVENT_ERROR)
 +		die("status in event error");
++	if (mask & WL_EVENT_HANGUP)
++		wl_event_source_remove(status_event_source);
 +
 +	n = read(fd, status, sizeof(status) - 1);
 +	if (n < 0 && errno != EWOULDBLOCK)
@@ -706,7 +710,7 @@ index fa76db2..04d66e4 100644
  void
  tag(const Arg *arg)
  {
-@@ -2452,7 +2727,7 @@ tag(const Arg *arg)
+@@ -2558,7 +2836,7 @@ tag(const Arg *arg)
  	sel->tags = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -715,7 +719,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2497,6 +2772,14 @@ tile(Monitor *m)
+@@ -2603,6 +2881,14 @@ tile(Monitor *m)
  	}
  }
  
@@ -730,7 +734,7 @@ index fa76db2..04d66e4 100644
  void
  togglefloating(const Arg *arg)
  {
-@@ -2525,7 +2808,7 @@ toggletag(const Arg *arg)
+@@ -2631,7 +2917,7 @@ toggletag(const Arg *arg)
  	sel->tags = newtags;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -739,7 +743,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2538,7 +2821,7 @@ toggleview(const Arg *arg)
+@@ -2644,7 +2930,7 @@ toggleview(const Arg *arg)
  	selmon->tagset[selmon->seltags] = newtagset;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -748,16 +752,16 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2586,7 +2869,7 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2692,7 +2978,7 @@ unmapnotify(struct wl_listener *listener, void *data)
  	}
  
  	wlr_scene_node_destroy(&c->scene->node);
 -	printstatus();
 +	drawbars();
- 	motionnotify(0);
+ 	motionnotify(0, NULL, 0, 0, 0, 0);
  }
  
-@@ -2622,6 +2905,7 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2728,6 +3014,7 @@ updatemons(struct wl_listener *listener, void *data)
  		if (m->wlr_output->enabled
  				&& !wlr_output_layout_get(output_layout, m->wlr_output))
  			wlr_output_layout_add_auto(output_layout, m->wlr_output);
@@ -765,7 +769,7 @@ index fa76db2..04d66e4 100644
  	}
  
  	/* Now that we update the output layout we can get its box */
-@@ -2682,6 +2966,13 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2788,6 +3075,13 @@ updatemons(struct wl_listener *listener, void *data)
  		}
  	}
  
@@ -779,7 +783,7 @@ index fa76db2..04d66e4 100644
  	/* FIXME: figure out why the cursor image is at 0,0 after turning all
  	 * the monitors on.
  	 * Move the cursor image where it used to be. It does not generate a
-@@ -2697,7 +2988,7 @@ updatetitle(struct wl_listener *listener, void *data)
+@@ -2803,7 +3097,7 @@ updatetitle(struct wl_listener *listener, void *data)
  {
  	Client *c = wl_container_of(listener, c, set_title);
  	if (c == focustop(c->mon))
@@ -788,7 +792,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2710,7 +3001,7 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2816,7 +3110,7 @@ urgent(struct wl_listener *listener, void *data)
  		return;
  
  	c->isurgent = 1;
@@ -797,7 +801,7 @@ index fa76db2..04d66e4 100644
  
  	if (client_surface(c)->mapped)
  		client_set_border_color(c, urgentcolor);
-@@ -2726,7 +3017,7 @@ view(const Arg *arg)
+@@ -2832,7 +3126,7 @@ view(const Arg *arg)
  		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -806,7 +810,7 @@ index fa76db2..04d66e4 100644
  }
  
  void
-@@ -2765,6 +3056,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2871,6 +3165,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  {
  	struct wlr_scene_node *node, *pnode;
  	struct wlr_surface *surface = NULL;
@@ -814,7 +818,7 @@ index fa76db2..04d66e4 100644
  	Client *c = NULL;
  	LayerSurface *l = NULL;
  	int layer;
-@@ -2773,9 +3065,12 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2879,9 +3174,12 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  		if (!(node = wlr_scene_node_at(&layers[layer]->node, x, y, nx, ny)))
  			continue;
  
@@ -830,7 +834,7 @@ index fa76db2..04d66e4 100644
  		/* Walk the tree to find a node that knows the client */
  		for (pnode = node; pnode && !c; pnode = &pnode->parent->node)
  			c = pnode->data;
-@@ -2914,7 +3209,7 @@ sethints(struct wl_listener *listener, void *data)
+@@ -3020,7 +3318,7 @@ sethints(struct wl_listener *listener, void *data)
  		return;
  
  	c->isurgent = xcb_icccm_wm_hints_get_urgency(c->surface.xwayland->hints);
