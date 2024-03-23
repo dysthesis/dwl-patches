@@ -1,4 +1,4 @@
-From 315474624a29f668088405a5bfec7d48e97a4c31 Mon Sep 17 00:00:00 2001
+From a6c7531d67e7cfd82c519f5b1eb1eb0659bbb2d4 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
 Date: Sat, 23 Mar 2024 14:09:57 +0300
 Subject: [PATCH] add border to bar
@@ -21,7 +21,7 @@ index bd008c9..a51ebe7 100644
  static pixman_color_t normbarbg = { 0x2222, 0x2222, 0x2222, 0xffff };
  static pixman_color_t selbarfg  = { 0xeeee, 0xeeee, 0xeeee, 0xffff };
 diff --git a/dwl.c b/dwl.c
-index 8341134..8870ce0 100644
+index 8341134..9f0b9d2 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -1428,7 +1428,8 @@ draw_rect(pixman_image_t *pix,
@@ -111,7 +111,7 @@ index 8341134..8870ce0 100644
  
  	lrpad = font->height;
 -	bh = font->height + 2;
-+	bh = font->height + 2 + borderpx;
++	bh = font->height + 2 + borderpx * 2;
  
  	status_event_source = wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
  		STDIN_FILENO, WL_EVENT_READABLE, status_in, NULL);
