@@ -1,12 +1,12 @@
-From 213d041523e36b7e4f8f2f527eb044bc2d3e9d3d Mon Sep 17 00:00:00 2001
+From 537bd7c485c1fb370d7a73f979ee140dab9c078e Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Tue, 19 Mar 2024 00:19:39 +0300
+Date: Mon, 25 Mar 2024 00:15:01 +0300
 Subject: [PATCH] port barpadding patch to bar for dwl
 
 ---
  config.def.h |  3 +++
- dwl.c        | 16 ++++++++++------
- 2 files changed, 13 insertions(+), 6 deletions(-)
+ dwl.c        | 14 +++++++++-----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index bd008c9..a2cf167 100644
@@ -30,10 +30,10 @@ index bd008c9..a2cf167 100644
  static const char *fontattrs    = "dpi=96";
  static pixman_color_t normbarfg = { 0xbbbb, 0xbbbb, 0xbbbb, 0xffff };
 diff --git a/dwl.c b/dwl.c
-index 8341134..51ce9f0 100644
+index 976fefb..6650fdc 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -433,6 +433,8 @@ static Monitor *selmon;
+@@ -434,6 +434,8 @@ static Monitor *selmon;
  
  static struct fcft_font *font;
  static int bh;
@@ -42,7 +42,7 @@ index 8341134..51ce9f0 100644
  static int lrpad;
  static char stext[256];
  static struct wl_event_source *status_event_source;
-@@ -570,8 +572,8 @@ arrangelayers(Monitor *m)
+@@ -571,8 +573,8 @@ arrangelayers(Monitor *m)
  		return;
  
  	if (m->showbar) {
@@ -53,15 +53,6 @@ index 8341134..51ce9f0 100644
  	}
  
  	/* Arrange exclusive surfaces from top->bottom */
-@@ -1018,7 +1020,7 @@ createmon(struct wl_listener *listener, void *data)
- 
- 	m->scene_buffer = wlr_scene_buffer_create(layers[LyrBottom], NULL);
- 	m->scene_buffer->point_accepts_input = bar_accepts_input;
--	m->b.width = m->wlr_output->width;
-+	m->b.width = m->wlr_output->width - 2 * sp;
- 	m->b.height = bh;
- 	m->showbar = showbar;
- 
 @@ -1501,8 +1503,8 @@ drawbar(Monitor *mon)
  	}
  
@@ -73,7 +64,7 @@ index 8341134..51ce9f0 100644
  	wlr_scene_buffer_set_buffer(mon->scene_buffer, &buf->base);
  	wlr_buffer_drop(&buf->base);
  }
-@@ -2756,6 +2758,8 @@ setup(void)
+@@ -2747,6 +2749,8 @@ setup(void)
  
  	lrpad = font->height;
  	bh = font->height + 2;
@@ -82,15 +73,15 @@ index 8341134..51ce9f0 100644
  
  	status_event_source = wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
  		STDIN_FILENO, WL_EVENT_READABLE, status_in, NULL);
-@@ -3077,7 +3081,7 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -3087,7 +3091,7 @@ updatebardims(Monitor *m)
+ {
+ 	int rw, rh;
+ 	wlr_output_transformed_resolution(m->wlr_output, &rw, &rh);
+-	m->b.width = rw;
++	m->b.width = rw - 2 * sp;
+ 	m->b.height = bh;
+ }
  
- 	/* Update bar */
- 	wl_list_for_each(m, &mons, link) {
--		m->b.width = m->wlr_output->width;
-+		m->b.width = m->wlr_output->width - 2 * sp;
- 		m->b.height = bh;
- 		drawbar(m);
- 	}
 -- 
 2.44.0
 
