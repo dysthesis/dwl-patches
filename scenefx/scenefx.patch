@@ -1,68 +1,15 @@
-From b5910af75300551f2d45696e22f5962238add39b Mon Sep 17 00:00:00 2001
+From 567803a6fdf9d7357f253121ea0a582befe317c7 Mon Sep 17 00:00:00 2001
 From: wochap <gean.marroquin@gmail.com>
-Date: Sat, 23 Mar 2024 19:12:14 -0500
-Subject: [PATCH] Squashed commit of the following:
+Date: Thu, 28 Mar 2024 10:28:39 -0500
+Subject: [PATCH 1/2] implement wlrfx/scenefx shadows
 
-commit dd4b749ca21e3be926e083c01ee6db77843280a9
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Sat Mar 23 19:00:15 2024 -0500
-
-    regenerate patch
-
-commit 35fecb60bbe3d110d190eaee9e254bade06caea5
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Sat Mar 23 18:59:21 2024 -0500
-
-    feat: add shadow_ignore_list option
-
-commit 06b085ee4d3e1301321e36fe9b7a07463ba0e2b0
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Sat Mar 23 09:17:30 2024 -0500
-
-    regenerate patches
-
-commit 536bea34283aafd0b98846560706e6dde62c1eac
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Sat Mar 23 09:17:01 2024 -0500
-
-    add variables to change shadow color|blur_sigma when focused
-
-commit 57469a99b3c514eeae604f27287560879826509d
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Fri Mar 22 11:29:50 2024 -0500
-
-    regenerate patches
-
-commit 501200f34179b1d05a15674ca8b99d709a8e5870
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Fri Mar 22 11:29:30 2024 -0500
-
-    fix shadow_only_floating
-
-commit 49523d85dafe1734bb76205d52c1b4c9a423cced
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Fri Mar 22 11:29:10 2024 -0500
-
-    fix build warnings/notes
-
-commit ad573f6a8552abab97345e823ccaa4850eb7c3fb
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Fri Mar 22 11:14:18 2024 -0500
-
-    add patches
-
-commit 4b4f630a60f2f68ffe4992c6a6bcdbc9505e8667
-Author: wochap <gean.marroquin@gmail.com>
-Date:   Fri Mar 22 11:12:12 2024 -0500
-
-    implement wlrfx/scenefx shadows
-
-    add options for shadow
+add options for shadow
 ---
  Makefile     |   2 +-
- config.def.h |   7 ++++
- dwl.c        | 113 +++++++++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 117 insertions(+), 5 deletions(-)
+ client.h     |  11 ++++-
+ config.def.h |   7 +++
+ dwl.c        | 122 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ 4 files changed, 133 insertions(+), 9 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 6cde460..f235edf 100644
@@ -77,8 +24,42 @@ index 6cde460..f235edf 100644
  DWLCFLAGS = `$(PKG_CONFIG) --cflags $(PKGS)` $(DWLCPPFLAGS) $(DWLDEVCFLAGS) $(CFLAGS)
  LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
  
+diff --git a/client.h b/client.h
+index 71c7d76..b641ced 100644
+--- a/client.h
++++ b/client.h
+@@ -131,7 +131,7 @@ client_get_appid(Client *c)
+ 	return c->surface.xdg->toplevel->app_id;
+ }
+ 
+-static inline void
++static inline int
+ client_get_clip(Client *c, struct wlr_box *clip)
+ {
+ 	struct wlr_box xdg_geom = {0};
+@@ -144,12 +144,19 @@ client_get_clip(Client *c, struct wlr_box *clip)
+ 
+ #ifdef XWAYLAND
+ 	if (client_is_x11(c))
+-		return;
++		return 1;
+ #endif
+ 
+ 	wlr_xdg_surface_get_geometry(c->surface.xdg, &xdg_geom);
+ 	clip->x = xdg_geom.x;
+ 	clip->y = xdg_geom.y;
++
++	if (!(xdg_geom.width > c->geom.width - c->bw 
++			|| xdg_geom.height > c->geom.height - c->bw)) {
++		return 0;
++	}
++
++	return 1;
+ }
+ 
+ static inline void
 diff --git a/config.def.h b/config.def.h
-index db0babc..502a2da 100644
+index db0babc..838612d 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -12,6 +12,13 @@ static const float focuscolor[]            = COLOR(0x005577ff);
@@ -86,7 +67,7 @@ index db0babc..502a2da 100644
  /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
  static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 1.0}; /* You can also use glsl colors */
 +static const int shadow = 1;
-+static const int shadow_only_floating = 0;
++static const int shadow_only_floating = 0; /* only apply shadow to floating windows */
 +static const struct wlr_render_color shadow_color = COLOR(0x0000FFff);
 +static const struct wlr_render_color shadow_color_focus = COLOR(0xFF0000ff);
 +static const int shadow_blur_sigma = 20;
@@ -96,7 +77,7 @@ index db0babc..502a2da 100644
  /* tagging - TAGCOUNT must be no greater than 31 */
  #define TAGCOUNT (9)
 diff --git a/dwl.c b/dwl.c
-index ef27a1d..f2103a7 100644
+index ef27a1d..679a46c 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -9,6 +9,9 @@
@@ -212,7 +193,30 @@ index ef27a1d..f2103a7 100644
  	/*
  	 * HACK: The "correct" way to set the gamma is to commit it together with
  	 * the rest of the state in one go, but to do that we would need to rewrite
-@@ -2048,6 +2086,13 @@ void
+@@ -1936,6 +1974,7 @@ resize(Client *c, struct wlr_box geo, int interact)
+ {
+ 	struct wlr_box *bbox = interact ? &sgeom : &c->mon->w;
+ 	struct wlr_box clip;
++	int should_clip;
+ 	client_set_bounds(c, geo.width, geo.height);
+ 	c->geom = geo;
+ 	applybounds(c, bbox);
+@@ -1954,8 +1993,12 @@ resize(Client *c, struct wlr_box geo, int interact)
+ 	/* this is a no-op if size hasn't changed */
+ 	c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
+ 			c->geom.height - 2 * c->bw);
+-	client_get_clip(c, &clip);
+-	wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
++	should_clip = client_get_clip(c, &clip);
++	if (should_clip) {
++		wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
++	} else {
++		wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, NULL);
++	}
+ }
+ 
+ void
+@@ -2048,6 +2091,13 @@ void
  setfloating(Client *c, int floating)
  {
  	c->isfloating = floating;
@@ -226,7 +230,7 @@ index ef27a1d..f2103a7 100644
  	if (!c->mon)
  		return;
  	wlr_scene_node_reparent(&c->scene->node, layers[c->isfullscreen
-@@ -2196,7 +2241,7 @@ setup(void)
+@@ -2196,7 +2246,7 @@ setup(void)
  	 * can also specify a renderer using the WLR_RENDERER env var.
  	 * The renderer is responsible for defining the various pixel formats it
  	 * supports for shared memory, this configures that for clients. */
@@ -235,7 +239,7 @@ index ef27a1d..f2103a7 100644
  		die("couldn't create renderer");
  
  	/* Create shm, drm and linux_dmabuf interfaces by ourselves.
-@@ -2650,8 +2695,11 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2650,8 +2700,11 @@ urgent(struct wl_listener *listener, void *data)
  	if (!c || c == focustop(selmon))
  		return;
  
@@ -248,7 +252,7 @@ index ef27a1d..f2103a7 100644
  	c->isurgent = 1;
  	printstatus();
  }
-@@ -2746,6 +2794,63 @@ zoom(const Arg *arg)
+@@ -2746,6 +2799,63 @@ zoom(const Arg *arg)
  	arrange(selmon);
  }
  
@@ -312,6 +316,34 @@ index ef27a1d..f2103a7 100644
  #ifdef XWAYLAND
  void
  activatex11(struct wl_listener *listener, void *data)
+-- 
+2.43.2
+
+
+From 62c850dabd018cd386e5535fd8f9c68420d0addd Mon Sep 17 00:00:00 2001
+From: wochap <gean.marroquin@gmail.com>
+Date: Thu, 28 Mar 2024 10:38:46 -0500
+Subject: [PATCH 2/2] style: make code more readable
+
+---
+ client.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/client.h b/client.h
+index b641ced..6532e05 100644
+--- a/client.h
++++ b/client.h
+@@ -151,8 +151,8 @@ client_get_clip(Client *c, struct wlr_box *clip)
+ 	clip->x = xdg_geom.x;
+ 	clip->y = xdg_geom.y;
+ 
+-	if (!(xdg_geom.width > c->geom.width - c->bw 
+-			|| xdg_geom.height > c->geom.height - c->bw)) {
++	if (xdg_geom.width <= c->geom.width - c->bw 
++			&& xdg_geom.height <= c->geom.height - c->bw) {
+ 		return 0;
+ 	}
+ 
 -- 
 2.43.2
 
