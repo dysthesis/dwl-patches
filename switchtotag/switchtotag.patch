@@ -1,6 +1,6 @@
-From ef817db56044ac28a2da5bc8a56381883a5bba7d Mon Sep 17 00:00:00 2001
+From 5f020a184eb708a4e68602acc0102d0d8fb790bd Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Tue, 16 Jan 2024 18:58:34 +0100
+Date: Mon, 1 Apr 2024 08:50:49 +0200
 Subject: [PATCH] allow switching to the configured tag when a window opens
 
 Add a rule option to switch to the configured tag when a window opens,
@@ -11,26 +11,25 @@ then switch back when it closes.
  2 files changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 9009517..055ec93 100644
+index 8847e58..1e2ae93 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -21,11 +21,11 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
+@@ -21,10 +21,10 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
  static int log_level = WLR_ERROR;
  
  static const Rule rules[] = {
--	/* app_id     title       tags mask     isfloating   monitor */
-+	/* app_id     title       tags mask     switchtotag   isfloating   monitor */
- 	/* examples:
--	{ "Gimp",     NULL,       0,            1,           -1 },
-+	{ "Gimp",     NULL,       0,            0,            1,           -1 },
-+	{ "firefox",  NULL,       1 << 8,       1,            0,           -1 },
- 	*/
--	{ "firefox",  NULL,       1 << 8,       0,           -1 },
+-	/* app_id             title       tags mask     isfloating   monitor */
++	/* app_id             title       tags mask     switchtotag   isfloating   monitor */
+ 	/* examples: */
+-	{ "Gimp_EXAMPLE",     NULL,       0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
+-	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,           -1 }, /* Start on ONLY tag "9" */
++	{ "Gimp_EXAMPLE",     NULL,       0,            0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
++	{ "firefox_EXAMPLE",  NULL,       1 << 8,       1,            0,           -1 }, /* Start on ONLY tag "9" */
  };
  
  /* layout(s) */
 diff --git a/dwl.c b/dwl.c
-index d508d79..d05e815 100644
+index 39ce68c..9a77a5f 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -138,6 +138,7 @@ typedef struct {
@@ -61,7 +60,7 @@ index d508d79..d05e815 100644
  		}
  	}
  	setmon(c, mon, newtags);
-@@ -2691,6 +2698,10 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2694,6 +2701,10 @@ unmapnotify(struct wl_listener *listener, void *data)
  	wlr_scene_node_destroy(&c->scene->node);
  	printstatus();
  	motionnotify(0, NULL, 0, 0, 0, 0);
