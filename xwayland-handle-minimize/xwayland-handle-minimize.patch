@@ -1,16 +1,15 @@
-From 0466f1faff9adec19fec2d49ffeae673666842e0 Mon Sep 17 00:00:00 2001
+From 7277f668f19f5a7fcfbbc96e80cb2829487848ca Mon Sep 17 00:00:00 2001
 From: korei999 <ju7t1xe@gmail.com>
-Date: Thu, 21 Mar 2024 19:25:40 +0200
-Subject: [PATCH] do not suspend xwayland clients & handle minimize request for
- xwayland clients
+Date: Mon, 1 Apr 2024 15:13:11 +0300
+Subject: [PATCH] handle minimize request for xwayland clients
 
 ---
- client.h | 10 ++++++----
+ client.h |  9 ++++++---
  dwl.c    | 19 +++++++++++++++++++
- 2 files changed, 25 insertions(+), 4 deletions(-)
+ 2 files changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/client.h b/client.h
-index fe9dffc..4e01a16 100644
+index 800b867..c46cfb2 100644
 --- a/client.h
 +++ b/client.h
 @@ -94,9 +94,12 @@ client_activate_surface(struct wlr_surface *s, int activated)
@@ -29,16 +28,8 @@ index fe9dffc..4e01a16 100644
  		return;
  	}
  #endif
-@@ -380,7 +383,6 @@ client_set_suspended(Client *c, int suspended)
- {
- #ifdef XWAYLAND
- 	if (client_is_x11(c)) {
--		wlr_xwayland_surface_set_withdrawn(c->surface.xwayland, suspended);
- 		return;
- 	}
- #endif
 diff --git a/dwl.c b/dwl.c
-index 5867b0c..7f330b7 100644
+index 39ce68c..b49f57b 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -131,6 +131,7 @@ typedef struct {
