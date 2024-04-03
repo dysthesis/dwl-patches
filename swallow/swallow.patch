@@ -1,4 +1,4 @@
-From 7c4b174821ab994c0f1a97cba5918f905004f72c Mon Sep 17 00:00:00 2001
+From edc5d6b72297ced74441bf3c8a267dc2eb6fc01c Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Fri, 15 Sep 2023 10:36:21 +0800
 Subject: [PATCH] swallow patch with x support
@@ -8,11 +8,11 @@ fixed to work after commit 985417b
  client.h     |  12 ++++++
  config.def.h |   7 ++--
  config.mk    |   4 +-
- dwl.c        | 112 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 125 insertions(+), 10 deletions(-)
+ dwl.c        | 113 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ 4 files changed, 126 insertions(+), 10 deletions(-)
 
 diff --git a/client.h b/client.h
-index 1dae434..51bef68 100644
+index 800b867..b4c4596 100644
 --- a/client.h
 +++ b/client.h
 @@ -131,6 +131,18 @@ client_get_appid(Client *c)
@@ -35,22 +35,21 @@ index 1dae434..51bef68 100644
  client_get_clip(Client *c, struct wlr_box *clip)
  {
 diff --git a/config.def.h b/config.def.h
-index a8ed61d..ca2b925 100644
+index 8847e58..37dcf14 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -21,11 +21,12 @@ static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 1.0}; /* You can al
+@@ -21,10 +21,11 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
  static int log_level = WLR_ERROR;
  
  static const Rule rules[] = {
--	/* app_id     title       tags mask     isfloating   monitor */
+-	/* app_id             title       tags mask     isfloating   monitor */
 +	/* app_id     title       tags mask     isfloating  isterm  noswallow  monitor */
- 	/* examples:
--	{ "Gimp",     NULL,       0,            1,           -1 },
-+	{ "Gimp",     NULL,       0,            1,          0,      1,         -1 },
- 	*/
--	{ "firefox",  NULL,       1 << 8,       0,           -1 },
-+	{ "firefox",  NULL,       1 << 8,       0,          0,      1,         -1 },
-+	{ "foot",     NULL,       0,            0,          1,      1,         -1 },
+ 	/* examples: */
+-	{ "Gimp_EXAMPLE",     NULL,       0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
+-	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,           -1 }, /* Start on ONLY tag "9" */
++	{ "Gimp",     NULL,       0,            1,          0,      1,         -1 }, /* Start on currently visible tags floating, not tiled */
++	{ "firefox",  NULL,       1 << 8,       0,          0,      1,         -1 }, /* Start on ONLY tag "9" */
++	{ "foot",     NULL,       0,            0,          1,      1,         -1 }, /* make foot swallow clients that are not foot */
  };
  
  /* layout(s) */
@@ -67,10 +66,10 @@ index 906f403..f7fa488 100644
 +XWAYLAND = -DXWAYLAND
 +XLIBS = xcb xcb-icccm
 diff --git a/dwl.c b/dwl.c
-index 10d5a5b..510ccf7 100644
+index 39ce68c..dd19db2 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -97,7 +97,8 @@ typedef struct {
+@@ -102,7 +102,8 @@ typedef struct {
  } Button;
  
  typedef struct Monitor Monitor;
@@ -80,7 +79,7 @@ index 10d5a5b..510ccf7 100644
  	/* Must keep these three elements in this order */
  	unsigned int type; /* XDGShell or X11* */
  	struct wlr_box geom; /* layout-relative, includes border */
-@@ -132,9 +133,11 @@ typedef struct {
+@@ -137,9 +138,11 @@ typedef struct {
  #endif
  	unsigned int bw;
  	uint32_t tags;
@@ -94,7 +93,7 @@ index 10d5a5b..510ccf7 100644
  
  typedef struct {
  	uint32_t mod;
-@@ -217,6 +220,8 @@ typedef struct {
+@@ -227,6 +230,8 @@ typedef struct {
  	const char *title;
  	uint32_t tags;
  	int isfloating;
@@ -103,7 +102,7 @@ index 10d5a5b..510ccf7 100644
  	int monitor;
  } Rule;
  
-@@ -331,6 +336,10 @@ static Monitor *xytomon(double x, double y);
+@@ -347,6 +352,10 @@ static Monitor *xytomon(double x, double y);
  static void xytonode(double x, double y, struct wlr_surface **psurface,
  		Client **pc, LayerSurface **pl, double *nx, double *ny);
  static void zoom(const Arg *arg);
@@ -114,7 +113,7 @@ index 10d5a5b..510ccf7 100644
  
  /* variables */
  static const char broken[] = "broken";
-@@ -436,10 +445,14 @@ applyrules(Client *c)
+@@ -458,10 +467,14 @@ applyrules(Client *c)
  	if (!(title = client_get_title(c)))
  		title = broken;
  
@@ -129,10 +128,11 @@ index 10d5a5b..510ccf7 100644
  			newtags |= r->tags;
  			i = 0;
  			wl_list_for_each(m, &mons, link) {
-@@ -449,6 +462,20 @@ applyrules(Client *c)
+@@ -470,6 +483,21 @@ applyrules(Client *c)
+ 			}
  		}
  	}
- 	wlr_scene_node_reparent(&c->scene->node, layers[c->isfloating ? LyrFloat : LyrTile]);
++	wlr_scene_node_reparent(&c->scene->node, layers[c->isfloating ? LyrFloat : LyrTile]);
 +	if (!c->noswallow && !client_is_float_type(c)) {
 +		Client *p = termforwin(c);
 +		if (p) {
@@ -150,7 +150,7 @@ index 10d5a5b..510ccf7 100644
  	setmon(c, mon, newtags);
  }
  
-@@ -1311,6 +1338,63 @@ handlesig(int signo)
+@@ -1388,6 +1416,63 @@ handlesig(int signo)
  	}
  }
  
@@ -214,7 +214,7 @@ index 10d5a5b..510ccf7 100644
  void
  incnmaster(const Arg *arg)
  {
-@@ -2559,15 +2643,33 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2680,15 +2765,33 @@ unmapnotify(struct wl_listener *listener, void *data)
  		grabc = NULL;
  	}
  
@@ -251,5 +251,5 @@ index 10d5a5b..510ccf7 100644
  
  	wlr_scene_node_destroy(&c->scene->node);
 -- 
-2.43.0
+2.44.0
 
