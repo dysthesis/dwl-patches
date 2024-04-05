@@ -1,0 +1,35 @@
+From 225ce9045d0d2f101a33a61d741b466a240f30b8 Mon Sep 17 00:00:00 2001
+From: oak <oak@petrifiedoak.com>
+Date: Fri, 5 Apr 2024 14:29:10 +0200
+Subject: [PATCH] port barheight patch from dwm
+
+---
+ config.def.h |  1 +
+ dwl.c        |  2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/config.def.h b/config.def.h
+index 8fb2d68..2a90092 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -17,6 +17,7 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
+ /* bar */
+ static const int showbar        = 1; /* 0 means no bar */
+ static const int topbar         = 1; /* 0 means bottom bar */
++static const int user_bh        = 0; /* 0 means that dwl will calculate bar height, >= 1 means dwl will use user_bh as bar height */
+ static const char *fonts[]      = {"monospace:size=10"};
+ static const char *fontattrs    = "dpi=96";
+ static pixman_color_t normbarfg = { 0xbbbb, 0xbbbb, 0xbbbb, 0xffff };
+diff --git a/dwl.c b/dwl.c
+index 056718d..4247f4c 100644
+--- a/dwl.c
++++ b/dwl.c
+@@ -2745,7 +2745,7 @@ setup(void)
+ 		die("Could not load font");
+ 
+ 	lrpad = font->height;
+-	bh = font->height + 2;
++	bh = user_bh ? user_bh : font->height + 2;
+ 
+ 	status_event_source = wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
+ 		STDIN_FILENO, WL_EVENT_READABLE, status_in, NULL);
