@@ -1,15 +1,15 @@
-From 567803a6fdf9d7357f253121ea0a582befe317c7 Mon Sep 17 00:00:00 2001
+From cd8040c4e4f22514837a2c768a8a41f0e9820900 Mon Sep 17 00:00:00 2001
 From: wochap <gean.marroquin@gmail.com>
-Date: Thu, 28 Mar 2024 10:28:39 -0500
-Subject: [PATCH 1/2] implement wlrfx/scenefx shadows
+Date: Fri, 5 Apr 2024 09:46:32 -0500
+Subject: [PATCH] implement wlrfx/scenefx shadows
 
-add options for shadow
+add options for shadow and corner_radius
 ---
  Makefile     |   2 +-
  client.h     |  11 ++++-
- config.def.h |   7 +++
+ config.def.h |   8 ++++
  dwl.c        | 122 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 133 insertions(+), 9 deletions(-)
+ 4 files changed, 134 insertions(+), 9 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 6cde460..f235edf 100644
@@ -25,7 +25,7 @@ index 6cde460..f235edf 100644
  LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
  
 diff --git a/client.h b/client.h
-index 71c7d76..b641ced 100644
+index 71c7d76..6532e05 100644
 --- a/client.h
 +++ b/client.h
 @@ -131,7 +131,7 @@ client_get_appid(Client *c)
@@ -49,8 +49,8 @@ index 71c7d76..b641ced 100644
  	clip->x = xdg_geom.x;
  	clip->y = xdg_geom.y;
 +
-+	if (!(xdg_geom.width > c->geom.width - c->bw 
-+			|| xdg_geom.height > c->geom.height - c->bw)) {
++	if (xdg_geom.width <= c->geom.width - c->bw 
++			&& xdg_geom.height <= c->geom.height - c->bw) {
 +		return 0;
 +	}
 +
@@ -59,10 +59,10 @@ index 71c7d76..b641ced 100644
  
  static inline void
 diff --git a/config.def.h b/config.def.h
-index db0babc..838612d 100644
+index db0babc..521bd04 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -12,6 +12,13 @@ static const float focuscolor[]            = COLOR(0x005577ff);
+@@ -12,6 +12,14 @@ static const float focuscolor[]            = COLOR(0x005577ff);
  static const float urgentcolor[]           = COLOR(0xff0000ff);
  /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
  static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 1.0}; /* You can also use glsl colors */
@@ -73,11 +73,12 @@ index db0babc..838612d 100644
 +static const int shadow_blur_sigma = 20;
 +static const int shadow_blur_sigma_focus = 40;
 +static const char *const shadow_ignore_list[] = { "xdg-desktop-portal-gtk", "cpupower-gui", NULL }; /* list of app-id to ignore */
++static const int corner_radius = 0;
  
  /* tagging - TAGCOUNT must be no greater than 31 */
  #define TAGCOUNT (9)
 diff --git a/dwl.c b/dwl.c
-index ef27a1d..679a46c 100644
+index ef27a1d..e0e8222 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -9,6 +9,9 @@
@@ -137,7 +138,7 @@ index ef27a1d..679a46c 100644
  			WLR_XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN);
  
 +	c->opacity = 1;
-+	c->corner_radius = 0;
++	c->corner_radius = corner_radius;
 +	c->shadow_data = shadow_data_get_default();
 +	c->shadow_data.enabled = shadow_only_floating != 1 && !in_shadow_ignore_list(client_get_appid(c));
 +	c->shadow_data.blur_sigma = shadow_blur_sigma;
@@ -316,34 +317,6 @@ index ef27a1d..679a46c 100644
  #ifdef XWAYLAND
  void
  activatex11(struct wl_listener *listener, void *data)
--- 
-2.43.2
-
-
-From 62c850dabd018cd386e5535fd8f9c68420d0addd Mon Sep 17 00:00:00 2001
-From: wochap <gean.marroquin@gmail.com>
-Date: Thu, 28 Mar 2024 10:38:46 -0500
-Subject: [PATCH 2/2] style: make code more readable
-
----
- client.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/client.h b/client.h
-index b641ced..6532e05 100644
---- a/client.h
-+++ b/client.h
-@@ -151,8 +151,8 @@ client_get_clip(Client *c, struct wlr_box *clip)
- 	clip->x = xdg_geom.x;
- 	clip->y = xdg_geom.y;
- 
--	if (!(xdg_geom.width > c->geom.width - c->bw 
--			|| xdg_geom.height > c->geom.height - c->bw)) {
-+	if (xdg_geom.width <= c->geom.width - c->bw 
-+			&& xdg_geom.height <= c->geom.height - c->bw) {
- 		return 0;
- 	}
- 
 -- 
 2.43.2
 
