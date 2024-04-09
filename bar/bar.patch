@@ -1,6 +1,6 @@
-From 3c759e99541c396af94286459e60e91637b747ab Mon Sep 17 00:00:00 2001
+From 6659e96800bd5697462c769cbe039840fcdcc5d1 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Mon, 25 Mar 2024 00:13:43 +0300
+Date: Tue, 9 Apr 2024 11:06:24 +0300
 Subject: [PATCH] Implement dwm bar clone
 
 ---
@@ -25,7 +25,7 @@ index a67fdd3..5578ae2 100644
  LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
  
 diff --git a/config.def.h b/config.def.h
-index 9009517..bd008c9 100644
+index 8847e58..0be3ad0 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -7,15 +7,25 @@
@@ -37,7 +37,7 @@ index 9009517..bd008c9 100644
  static const float bordercolor[]           = COLOR(0x444444ff);
  static const float focuscolor[]            = COLOR(0x005577ff);
  static const float urgentcolor[]           = COLOR(0xff0000ff);
- /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
+ /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
  static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
  
 +/* bar */
@@ -84,7 +84,7 @@ index 9009517..bd008c9 100644
 +	{ ClkTagBar,   MODKEY, BTN_RIGHT,  toggletag,      {0} },
  };
 diff --git a/dwl.c b/dwl.c
-index 5867b0c..976fefb 100644
+index bf763df..20c8801 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -4,6 +4,7 @@
@@ -128,7 +128,7 @@ index 5867b0c..976fefb 100644
  /* enums */
  enum { CurNormal, CurPressed, CurMove, CurResize }; /* cursor */
  enum { XDGShell, LayerShell, X11 }; /* client types */
- enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrFS, LyrTop, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
+ enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
 +enum { ClkTagBar, ClkLtSymbol, ClkStatus, ClkTitle, ClkClient, ClkRoot }; /* clicks */
  #ifdef XWAYLAND
  enum { NetWMWindowTypeDialog, NetWMWindowTypeSplash, NetWMWindowTypeToolbar,
@@ -313,7 +313,7 @@ index 5867b0c..976fefb 100644
 +	if (c)
 +		click = ClkClient;
 +
-+	if ((node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) && 
++	if ((node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) &&
 +		(buffer = wlr_scene_buffer_from_node(node)) && buffer == selmon->scene_buffer) {
 +		x = selmon->m.x;
 +		do
@@ -451,8 +451,8 @@ index 5867b0c..976fefb 100644
 +}
 +
 +static void
-+draw_rect(pixman_image_t *pix, 
-+          int16_t x, int16_t y, uint16_t w, uint16_t h, 
++draw_rect(pixman_image_t *pix,
++          int16_t x, int16_t y, uint16_t w, uint16_t h,
 +          int filled, pixman_color_t *bg)
 +{
 +	/*
@@ -462,7 +462,7 @@ index 5867b0c..976fefb 100644
 +	 * out of lines (thin recthangles) had to be used.
 +	 */
 +	if (filled)
-+		pixman_image_fill_rectangles(PIXMAN_OP_SRC, pix, bg, 1, 
++		pixman_image_fill_rectangles(PIXMAN_OP_SRC, pix, bg, 1,
 +			&(pixman_rectangle16_t){x, y, w, h});
 +	else
 +		pixman_image_fill_rectangles(PIXMAN_OP_SRC, pix, bg, 4,
