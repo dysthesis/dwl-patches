@@ -1,28 +1,28 @@
-From 3ae5cd4ff7b2cc73bd2c0ebb25d6afcde64e8e6d Mon Sep 17 00:00:00 2001
+From 7fed9449575b1e4f58d519d2f87b7e66e2056125 Mon Sep 17 00:00:00 2001
 From: wochap <gean.marroquin@gmail.com>
-Date: Tue, 5 Mar 2024 23:56:23 -0500
-Subject: [PATCH] implement regex support in rules for app_id and title
+Date: Thu, 11 Apr 2024 12:45:47 -0500
+Subject: [PATCH] implement regex support in rules for app_id and title Enables
+ the use of regular expressions for window rules "app_id" and "title"
 
-Enables the use of regular expressions for window rules "app_id" and "title"
 ---
  config.def.h |  1 +
  dwl.c        | 19 +++++++++++++++++--
  2 files changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index db0babc..ff23b6f 100644
+index 8847e58..89f5b60 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -25,6 +25,7 @@ static const Rule rules[] = {
- 	{ "Gimp",     NULL,       0,            1,           -1 },
- 	*/
- 	{ "firefox",  NULL,       1 << 8,       0,           -1 },
-+	{ "^kitty$",  NULL,       0,            0,           -1 },
+ 	/* examples: */
+ 	{ "Gimp_EXAMPLE",     NULL,       0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
+ 	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,           -1 }, /* Start on ONLY tag "9" */
++	{ "^kitty_EXAMPLE$",  NULL,       0,            0,           -1 },
  };
  
  /* layout(s) */
 diff --git a/dwl.c b/dwl.c
-index ef27a1d..df29577 100644
+index bf763df..fc185af 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -10,6 +10,7 @@
@@ -33,7 +33,7 @@ index ef27a1d..df29577 100644
  #include <wayland-server-core.h>
  #include <wlr/backend.h>
  #include <wlr/backend/libinput.h>
-@@ -327,6 +328,7 @@ static Monitor *xytomon(double x, double y);
+@@ -347,6 +348,7 @@ static Monitor *xytomon(double x, double y);
  static void xytonode(double x, double y, struct wlr_surface **psurface,
  		Client **pc, LayerSurface **pl, double *nx, double *ny);
  static void zoom(const Arg *arg);
@@ -41,7 +41,7 @@ index ef27a1d..df29577 100644
  
  /* variables */
  static const char broken[] = "broken";
-@@ -430,8 +432,8 @@ applyrules(Client *c)
+@@ -459,8 +461,8 @@ applyrules(Client *c)
  		title = broken;
  
  	for (r = rules; r < END(rules); r++) {
@@ -52,7 +52,7 @@ index ef27a1d..df29577 100644
  			c->isfloating = r->isfloating;
  			newtags |= r->tags;
  			i = 0;
-@@ -2746,6 +2748,19 @@ zoom(const Arg *arg)
+@@ -2929,6 +2931,19 @@ zoom(const Arg *arg)
  	arrange(selmon);
  }
  
@@ -73,5 +73,4 @@ index ef27a1d..df29577 100644
  void
  activatex11(struct wl_listener *listener, void *data)
 -- 
-2.42.0
-
+2.43.2
