@@ -1,17 +1,17 @@
-From 7350bdb548ba4b50a666a6e7fdc71d26c6e7e191 Mon Sep 17 00:00:00 2001
+From 6337cf36554eda98f3d160ef4fdd12eb042f4120 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Sun, 24 Mar 2024 23:07:11 +0300
+Date: Sun, 14 Apr 2024 07:58:53 +0300
 Subject: [PATCH] port hide vacant tags patch
 
 ---
- dwl.c | 26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ dwl.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 8341134..3332c69 100644
+index 54273ae..7db6273 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -652,7 +652,7 @@ void buffer_end_data_ptr_access(struct wlr_buffer *buffer) {
+@@ -651,7 +651,7 @@ void buffer_end_data_ptr_access(struct wlr_buffer *buffer) {
  void
  buttonpress(struct wl_listener *listener, void *data)
  {
@@ -20,14 +20,13 @@ index 8341134..3332c69 100644
  	unsigned int click;
  	struct wlr_pointer_button_event *event = data;
  	struct wlr_keyboard *keyboard;
-@@ -673,9 +673,18 @@ buttonpress(struct wl_listener *listener, void *data)
- 	if ((node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) && 
+@@ -672,9 +672,17 @@ buttonpress(struct wl_listener *listener, void *data)
+ 	if ((node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) &&
  		(buffer = wlr_scene_buffer_from_node(node)) && buffer == selmon->scene_buffer) {
  		x = selmon->m.x;
 -		do
 -			x += TEXTW(tags[i]);
 -		while (cursor->x >= x && ++i < LENGTH(tags));
-+
 +		wl_list_for_each(c, &clients, link) {
 +			if (c->mon != selmon)
 +				continue;
@@ -42,7 +41,7 @@ index 8341134..3332c69 100644
  		if (i < LENGTH(tags)) {
  			click = ClkTagBar;
  			arg.ui = 1 << i;
-@@ -1464,13 +1473,16 @@ drawbar(Monitor *mon)
+@@ -1379,13 +1387,16 @@ drawbar(Monitor *mon)
  	wl_list_for_each(c, &clients, link) {
  		if (c->mon != mon)
  			continue;
@@ -60,17 +59,17 @@ index 8341134..3332c69 100644
  		w = TEXTW(tags[i]);
  		sel = mon->tagset[mon->seltags] & 1 << i;
  
-@@ -1479,10 +1491,6 @@ drawbar(Monitor *mon)
- 		draw_text(pix, x, 0, w, mon->b.height, lrpad / 2, tags[i],
- 			urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
+@@ -1393,10 +1404,6 @@ drawbar(Monitor *mon)
+ 			urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg),
+ 			urg & 1 << i ? &selbarfg : (sel ? &selbarbg : &normbarbg));
  
 -		if (occ & 1 << i)
--			draw_rect(pix, x + boxs, boxs, boxw, boxw,
--				sel, urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
+-			drwl_rect(pix, x + boxs, boxs, boxw, boxw, sel,
+-				urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
 -
  		x += w;
  	}
- 	w = TEXTW(mon->ltsymbol);
+ 
 -- 
 2.44.0
 
