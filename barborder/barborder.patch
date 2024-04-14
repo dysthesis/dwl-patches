@@ -1,17 +1,26 @@
-From a6c7531d67e7cfd82c519f5b1eb1eb0659bbb2d4 Mon Sep 17 00:00:00 2001
+From 38dd71e51784ab68261d9c0479a4579d419315f1 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Sat, 23 Mar 2024 14:09:57 +0300
+Date: Sun, 14 Apr 2024 08:47:04 +0300
 Subject: [PATCH] add border to bar
 
 ---
- config.def.h |  1 +
- dwl.c        | 33 +++++++++++++++++++--------------
- 2 files changed, 20 insertions(+), 14 deletions(-)
+ config.def.h |  3 ++-
+ dwl.c        | 27 ++++++++++++++++-----------
+ 2 files changed, 18 insertions(+), 12 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index bd008c9..a51ebe7 100644
+index 0be3ad0..e5e595a 100644
 --- a/config.def.h
 +++ b/config.def.h
+@@ -6,7 +6,7 @@
+ /* appearance */
+ static const int sloppyfocus               = 1;  /* focus follows mouse */
+ static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
+-static const unsigned int borderpx         = 1;  /* border pixel of windows */
++static const unsigned int borderpx         = 1;  /* border pixel of windows & bar */
+ static const float rootcolor[]             = COLOR(0x000000ff);
+ static const float bordercolor[]           = COLOR(0x444444ff);
+ static const float focuscolor[]            = COLOR(0x005577ff);
 @@ -19,6 +19,7 @@ static const int showbar        = 1; /* 0 means no bar */
  static const int topbar         = 1; /* 0 means bottom bar */
  static const char *fonts[]      = {"monospace:size=10"};
@@ -21,10 +30,10 @@ index bd008c9..a51ebe7 100644
  static pixman_color_t normbarbg = { 0x2222, 0x2222, 0x2222, 0xffff };
  static pixman_color_t selbarfg  = { 0xeeee, 0xeeee, 0xeeee, 0xffff };
 diff --git a/dwl.c b/dwl.c
-index 8341134..9f0b9d2 100644
+index 54273ae..3153bfd 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -1428,7 +1428,8 @@ draw_rect(pixman_image_t *pix,
+@@ -1344,7 +1344,8 @@ dirtomon(enum wlr_direction dir)
  void
  drawbar(Monitor *mon)
  {
@@ -34,7 +43,7 @@ index 8341134..9f0b9d2 100644
  	int sel;
  	int boxs = font->height / 9;
  	int boxw = font->height / 6 + 2;
-@@ -1442,6 +1443,8 @@ drawbar(Monitor *mon)
+@@ -1357,6 +1358,8 @@ drawbar(Monitor *mon)
  	if (!mon || !mon->showbar)
  		return;
  
@@ -43,25 +52,23 @@ index 8341134..9f0b9d2 100644
  	stride = mon->b.width * 4;
  	size = stride * mon->b.height;
  
-@@ -1452,13 +1455,15 @@ drawbar(Monitor *mon)
+@@ -1367,12 +1370,14 @@ drawbar(Monitor *mon)
  	pix = pixman_image_create_bits(
  		PIXMAN_a8r8g8b8, mon->b.width, mon->b.height, buf->data, stride);
  
-+	draw_rect(pix, 0, 0, mon->b.width, mon->b.height, 1, &borderbar);
++	drwl_rect(pix, 0, 0, mon->b.width, mon->b.height, 1, &borderbar);
 +
  	/* draw status first so it can be overdrawn by tags later */
  	if (mon == selmon) {
  		if (stext[0] == '\0')
  			strncpy(stext, "dwl-"VERSION, sizeof(stext));
--		draw_rect(pix, 0, 0, mon->b.width, mon->b.height, 1, &normbarbg);
-+		draw_rect(pix, borderpx, y, mw, mh, 1, &normbarbg);
- 		tw = TEXTW(stext) - lrpad + 2;
--		draw_text(pix, mon->b.width - tw, 0, tw, mon->b.height, 0, stext, &normbarfg);
-+		draw_text(pix, borderpx + mw - tw, y, tw + borderpx, mh, 0, stext, &normbarfg);
+ 		tw = TEXTW(stext) - lrpad;
+-		drwl_text(pix, font, mon->b.width - tw, 0, tw, mon->b.height, 0,
++		drwl_text(pix, font, borderpx + mw - tw, y, tw, mh, 0,
+ 			stext, &normbarfg, &normbarbg);
  	}
  
- 	wl_list_for_each(c, &clients, link) {
-@@ -1469,34 +1474,34 @@ drawbar(Monitor *mon)
+@@ -1384,37 +1389,37 @@ drawbar(Monitor *mon)
  			urg |= c->tags;
  	}
  	c = focustop(mon);
@@ -71,42 +78,43 @@ index 8341134..9f0b9d2 100644
  		w = TEXTW(tags[i]);
  		sel = mon->tagset[mon->seltags] & 1 << i;
  
--		draw_rect(pix, x, 0, w, mon->b.height, 1,
-+		draw_rect(pix, x, y, w, mh, 1,
+-		drwl_text(pix, font, x, 0, w, mon->b.height, lrpad / 2, tags[i],
++		drwl_text(pix, font, x, y, w, mh, lrpad / 2, tags[i],
+ 			urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg),
  			urg & 1 << i ? &selbarfg : (sel ? &selbarbg : &normbarbg));
--		draw_text(pix, x, 0, w, mon->b.height, lrpad / 2, tags[i],
-+		draw_text(pix, x, y, w, mh, lrpad / 2, tags[i],
- 			urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
  
  		if (occ & 1 << i)
--			draw_rect(pix, x + boxs, boxs, boxw, boxw,
-+			draw_rect(pix, x + boxs, y + boxs, boxw, boxw,
- 				sel, urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
+-			drwl_rect(pix, x + boxs, boxs, boxw, boxw, sel,
++			drwl_rect(pix, x + boxs, y + boxs, boxw, boxw, sel,
+ 				urg & 1 << i ? &selbarbg : (sel ? &selbarfg : &normbarfg));
  
  		x += w;
  	}
+ 
  	w = TEXTW(mon->ltsymbol);
--	draw_rect(pix, x, 0, w, mon->b.height, 1, &normbarbg);
--	x = draw_text(pix, x, 0, w, mon->b.height, lrpad / 2, mon->ltsymbol, &normbarfg);
-+	draw_rect(pix, x, y, w, mh, 1, &normbarbg);
-+	x = draw_text(pix, x, y, w, mh, lrpad / 2, mon->ltsymbol, &normbarfg);
+-	x = drwl_text(pix, font, x, 0, w, mon->b.height, lrpad / 2,
++	x = drwl_text(pix, font, x, y, w, mh, lrpad / 2,
+ 			mon->ltsymbol, &normbarfg, &normbarbg);
  
 -	if ((w = mon->b.width - tw - x) > mon->b.height) {
-+	if ((w = mw - tw - x) > mh) {
- 		title = c ? client_get_title(c) : NULL;
--		draw_rect(pix, x, 0, w, mon->b.height, 1,
-+		draw_rect(pix, x, y, w, mh, 1,
- 			(mon == selmon && title) ? &selbarbg : &normbarbg);
--		draw_text(pix, x, 0, w, mon->b.height, lrpad / 2, title,
-+		draw_text(pix, x, y, w, mh, lrpad / 2, title,
- 			mon == selmon ? &selbarfg : &normbarfg);
- 		if (c && c->isfloating)
--			draw_rect(pix, x + boxs, boxs, boxw, boxw, 0,
-+			draw_rect(pix, x + boxs, y + boxs, boxw, boxw, 0,
- 				mon == selmon ? &selbarfg : &normbarfg);
++	if ((w = mw - tw - x + borderpx) > mh) {
+ 		if (c != NULL) {
+-			drwl_text(pix, font, x, 0, w, mon->b.height, lrpad / 2,
++			drwl_text(pix, font, x, y, w, mh, lrpad / 2,
+ 				c ? client_get_title(c) : NULL,
+ 				mon == selmon ? &selbarfg : &normbarfg,
+ 				(mon == selmon && c) ? &selbarbg : &normbarbg);
+ 			if (c && c->isfloating)
+-				drwl_rect(pix, x + boxs, boxs, boxw, boxw, 0,
++				drwl_rect(pix, x + boxs, y + boxs, boxw, boxw, 0,
+ 					mon == selmon ? &selbarfg : &normbarfg);
+ 		} else {
+-			drwl_rect(pix, x, 0, w, mon->b.height, 1, &normbarbg);
++			drwl_rect(pix, x, y, w, mh, 1, &normbarbg);
+ 		}
  	}
  
-@@ -2755,7 +2760,7 @@ setup(void)
+@@ -2664,7 +2669,7 @@ setup(void)
  		die("Could not load font");
  
  	lrpad = font->height;
