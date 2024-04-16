@@ -1,4 +1,4 @@
-From c84dbb5d4fa84e37d9bf6addde065dc7d3b13ec5 Mon Sep 17 00:00:00 2001
+From a47820e26cbbcc3af7591d5676276a07def21c91 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
 Date: Tue, 16 Apr 2024 23:58:41 +0300
 Subject: [PATCH] Implement dwm bar clone
@@ -994,6 +994,3 @@ index bf763df..54273ae 100644
  
  	if (c->isurgent && surface && surface->mapped)
  		client_set_border_color(c, urgentcolor);
--- 
-2.44.0
-
