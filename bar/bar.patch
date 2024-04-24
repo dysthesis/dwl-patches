@@ -1,6 +1,6 @@
-From a47820e26cbbcc3af7591d5676276a07def21c91 Mon Sep 17 00:00:00 2001
+From 5c41ce96bb08895fa262b06984583d97bd10220b Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Tue, 16 Apr 2024 23:58:41 +0300
+Date: Wed, 24 Apr 2024 15:43:38 +0300
 Subject: [PATCH] Implement dwm bar clone
 
 ---
@@ -8,9 +8,9 @@ Subject: [PATCH] Implement dwm bar clone
  LICENSE.utf8dec |  25 ++++
  Makefile        |   2 +-
  config.def.h    |  29 +++-
- drwl.h          | 136 ++++++++++++++++++
+ drwl.h          | 142 +++++++++++++++++++
  dwl.c           | 364 ++++++++++++++++++++++++++++++++++++++----------
- 6 files changed, 497 insertions(+), 81 deletions(-)
+ 6 files changed, 503 insertions(+), 81 deletions(-)
  create mode 100644 LICENSE.drwl
  create mode 100644 LICENSE.utf8dec
  create mode 100644 drwl.h
@@ -148,10 +148,10 @@ index 8847e58..0be3ad0 100644
  };
 diff --git a/drwl.h b/drwl.h
 new file mode 100644
-index 0000000..3aa3d9d
+index 0000000..613551e
 --- /dev/null
 +++ b/drwl.h
-@@ -0,0 +1,136 @@
+@@ -0,0 +1,142 @@
 +/*
 + * drwl - https://codeberg.org/sewn/drwl
 + * See LICENSE file for copyright and license details.
@@ -222,6 +222,7 @@ index 0000000..3aa3d9d
 +	uint32_t state = UTF8_ACCEPT;
 +	pixman_image_t *fg_pix = NULL;
 +	const struct fcft_glyph *glyph, *eg;
++	int noellipsis = 0;
 +
 +	if ((render && (!fg || !w)) || !text || !font)
 +		return 0;
@@ -256,12 +257,17 @@ index 0000000..3aa3d9d
 +
 +		ty = y + (h - font->height) / 2 + font->ascent;
 +
-+		/* only ellipsis if we haven't reached the end */
-+		if (x_kern + glyph->advance.x + eg->advance.x > w && *(p + 1) != '\0') {
-+			w -= eg->advance.x;
-+			pixman_image_composite32(
-+				PIXMAN_OP_OVER, fg_pix, eg->pix, pix, 0, 0, 0, 0,
-+				x + eg->x, ty - eg->y, eg->width, eg->height);
++		/* draw ellipsis if remaining text doesn't fit */
++		if (!noellipsis && x_kern + glyph->advance.x + eg->advance.x > w && *(p + 1) != '\0') {
++			if (drwl_text(NULL, font, 0, 0, 0, 0, 0, p, NULL, NULL)
++					- glyph->advance.x < eg->advance.x) {
++				noellipsis = 1;
++			} else {
++				w -= eg->advance.x;
++				pixman_image_composite32(
++					PIXMAN_OP_OVER, fg_pix, eg->pix, pix, 0, 0, 0, 0,
++					x + eg->x, ty - eg->y, eg->width, eg->height);
++			}
 +		}
 +
 +		if ((x_kern + glyph->advance.x) > w)
@@ -994,3 +1000,6 @@ index bf763df..54273ae 100644
  
  	if (c->isurgent && surface && surface->mapped)
  		client_set_border_color(c, urgentcolor);
+-- 
+2.44.0
+
