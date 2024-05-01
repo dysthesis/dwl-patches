@@ -1,4 +1,4 @@
-From edc5d6b72297ced74441bf3c8a267dc2eb6fc01c Mon Sep 17 00:00:00 2001
+From fa39d79dd7d485b8bfe3c99cf8e107ada03020ed Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Fri, 15 Sep 2023 10:36:21 +0800
 Subject: [PATCH] swallow patch with x support
@@ -7,9 +7,8 @@ fixed to work after commit 985417b
 ---
  client.h     |  12 ++++++
  config.def.h |   7 ++--
- config.mk    |   4 +-
  dwl.c        | 113 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 126 insertions(+), 10 deletions(-)
+ 3 files changed, 124 insertions(+), 8 deletions(-)
 
 diff --git a/client.h b/client.h
 index 800b867..b4c4596 100644
@@ -35,7 +34,7 @@ index 800b867..b4c4596 100644
  client_get_clip(Client *c, struct wlr_box *clip)
  {
 diff --git a/config.def.h b/config.def.h
-index 8847e58..37dcf14 100644
+index 8847e58..0508e9b 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -21,10 +21,11 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
@@ -43,30 +42,18 @@ index 8847e58..37dcf14 100644
  
  static const Rule rules[] = {
 -	/* app_id             title       tags mask     isfloating   monitor */
-+	/* app_id     title       tags mask     isfloating  isterm  noswallow  monitor */
++	/* app_id             title       tags mask     isfloating  isterm  noswallow  monitor */
  	/* examples: */
 -	{ "Gimp_EXAMPLE",     NULL,       0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
 -	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,           -1 }, /* Start on ONLY tag "9" */
-+	{ "Gimp",     NULL,       0,            1,          0,      1,         -1 }, /* Start on currently visible tags floating, not tiled */
-+	{ "firefox",  NULL,       1 << 8,       0,          0,      1,         -1 }, /* Start on ONLY tag "9" */
-+	{ "foot",     NULL,       0,            0,          1,      1,         -1 }, /* make foot swallow clients that are not foot */
++	{ "Gimp_EXAMPLE",     NULL,       0,            1,          0,      1,         -1 }, /* Start on currently visible tags floating, not tiled */
++	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,          0,      1,         -1 }, /* Start on ONLY tag "9" */
++	{ "foot",             NULL,       0,            0,          1,      1,         -1 }, /* make foot swallow clients that are not foot */
  };
  
  /* layout(s) */
-diff --git a/config.mk b/config.mk
-index 906f403..f7fa488 100644
---- a/config.mk
-+++ b/config.mk
-@@ -11,5 +11,5 @@ DATADIR = $(PREFIX)/share
- XWAYLAND =
- XLIBS =
- # Uncomment to build XWayland support
--#XWAYLAND = -DXWAYLAND
--#XLIBS = xcb xcb-icccm
-+XWAYLAND = -DXWAYLAND
-+XLIBS = xcb xcb-icccm
 diff --git a/dwl.c b/dwl.c
-index 39ce68c..dd19db2 100644
+index bf763df..3a5c103 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -102,7 +102,8 @@ typedef struct {
@@ -251,5 +238,5 @@ index 39ce68c..dd19db2 100644
  
  	wlr_scene_node_destroy(&c->scene->node);
 -- 
-2.44.0
+2.43.0
 
