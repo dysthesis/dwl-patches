@@ -1,14 +1,13 @@
-From c3d9f264588d846fedbecce14a86fdb68980609a Mon Sep 17 00:00:00 2001
+From dc63d64cd69f515013464b3feb8acb411f5a348f Mon Sep 17 00:00:00 2001
 From: wochap <gean.marroquin@gmail.com>
-Date: Mon, 29 Apr 2024 09:50:59 -0500
+Date: Thu, 2 May 2024 17:25:45 -0500
 Subject: [PATCH] implement foreign toplevel management
 
 ---
  Makefile                                      |   5 +-
- client.h                                      |  13 +
  dwl.c                                         |  93 +++++-
  ...oreign-toplevel-management-unstable-v1.xml | 270 ++++++++++++++++++
- 4 files changed, 379 insertions(+), 2 deletions(-)
+ 3 files changed, 366 insertions(+), 2 deletions(-)
  create mode 100644 protocols/wlr-foreign-toplevel-management-unstable-v1.xml
 
 diff --git a/Makefile b/Makefile
@@ -34,30 +33,6 @@ index a67fdd3..e0e1260 100644
  
  config.h:
  	cp config.def.h $@
-diff --git a/client.h b/client.h
-index 800b867..4ec62d8 100644
---- a/client.h
-+++ b/client.h
-@@ -344,6 +344,19 @@ client_set_fullscreen(Client *c, int fullscreen)
- 	wlr_xdg_toplevel_set_fullscreen(c->surface.xdg->toplevel, fullscreen);
- }
- 
-+static inline void
-+client_set_minimized(struct wlr_surface *s, int minimized)
-+{
-+#ifdef XWAYLAND
-+	struct wlr_xwayland_surface *xsurface;
-+	if ((xsurface = wlr_xwayland_surface_try_from_wlr_surface(s))) {
-+		int focused = seat->keyboard_state.focused_surface == xsurface->surface;
-+		wlr_xwayland_surface_set_minimized(xsurface, !focused && minimized);
-+		return;
-+	}
-+#endif
-+}
-+
- static inline uint32_t
- client_set_size(Client *c, uint32_t width, uint32_t height)
- {
 diff --git a/dwl.c b/dwl.c
 index bf763df..648616d 100644
 --- a/dwl.c
