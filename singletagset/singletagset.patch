@@ -1,26 +1,26 @@
-From 9a928ae856dfbabbdb0b90595e169d5bea34b62c Mon Sep 17 00:00:00 2001
+From 8aff7cfe2137c3410bc4b02e3fdf685a67a3217e Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Tue, 2 Jan 2024 10:22:31 +1000
 Subject: [PATCH] singletagset
 
 ---
- dwl.c | 89 +++++++++++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 80 insertions(+), 9 deletions(-)
+ dwl.c | 91 ++++++++++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 81 insertions(+), 10 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 4d19357..755c125 100644
+index bf763dfc..56586125 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -66,7 +66,7 @@
- #define MAX(A, B)               ((A) > (B) ? (A) : (B))
+@@ -71,7 +71,7 @@
  #define MIN(A, B)               ((A) < (B) ? (A) : (B))
+ #define ROUND(X)                ((int)((X < 0) ? (X - 0.5) : (X + 0.5)))
  #define CLEANMASK(mask)         (mask & ~WLR_MODIFIER_CAPS)
 -#define VISIBLEON(C, M)         ((M) && (C)->mon == (M) && ((C)->tags & (M)->tagset[(M)->seltags]))
 +#define VISIBLEON(C, M)         ((M) && ((C)->tags & (M)->tagset[(M)->seltags]))
  #define LENGTH(X)               (sizeof X / sizeof X[0])
  #define END(A)                  ((A) + LENGTH(A))
  #define TAGMASK                 ((1u << TAGCOUNT) - 1)
-@@ -236,6 +236,7 @@ static void arrange(Monitor *m);
+@@ -246,6 +246,7 @@ static void arrange(Monitor *m);
  static void arrangelayer(Monitor *m, struct wl_list *list,
  		struct wlr_box *usable_area, int exclusive);
  static void arrangelayers(Monitor *m);
@@ -28,7 +28,7 @@ index 4d19357..755c125 100644
  static void axisnotify(struct wl_listener *listener, void *data);
  static void buttonpress(struct wl_listener *listener, void *data);
  static void chvt(const Arg *arg);
-@@ -269,6 +270,7 @@ static void focusmon(const Arg *arg);
+@@ -283,6 +284,7 @@ static void focusmon(const Arg *arg);
  static void focusstack(const Arg *arg);
  static Client *focustop(Monitor *m);
  static void fullscreennotify(struct wl_listener *listener, void *data);
@@ -36,7 +36,7 @@ index 4d19357..755c125 100644
  static void handlesig(int signo);
  static void incnmaster(const Arg *arg);
  static void inputdevice(struct wl_listener *listener, void *data);
-@@ -533,6 +535,15 @@ arrangelayers(Monitor *m)
+@@ -558,6 +560,15 @@ arrangelayers(Monitor *m)
  	}
  }
  
@@ -52,7 +52,7 @@ index 4d19357..755c125 100644
  void
  axisnotify(struct wl_listener *listener, void *data)
  {
-@@ -856,7 +867,7 @@ createmon(struct wl_listener *listener, void *data)
+@@ -881,7 +892,7 @@ createmon(struct wl_listener *listener, void *data)
  
  	wlr_output_state_init(&state);
  	/* Initialize monitor state using configured rules */
@@ -61,7 +61,16 @@ index 4d19357..755c125 100644
  	for (r = monrules; r < END(monrules); r++) {
  		if (!r->name || strstr(wlr_output->name, r->name)) {
  			m->m.x = r->x;
-@@ -1290,6 +1301,22 @@ fullscreennotify(struct wl_listener *listener, void *data)
+@@ -1354,7 +1365,7 @@ focustop(Monitor *m)
+ {
+ 	Client *c;
+ 	wl_list_for_each(c, &fstack, flink) {
+-		if (VISIBLEON(c, m))
++		if (VISIBLEON(c, m) && c->mon)
+ 			return c;
+ 	}
+ 	return NULL;
+@@ -1367,6 +1378,22 @@ fullscreennotify(struct wl_listener *listener, void *data)
  	setfullscreen(c, client_wants_fullscreen(c));
  }
  
@@ -84,7 +93,7 @@ index 4d19357..755c125 100644
  void
  handlesig(int signo)
  {
-@@ -1807,8 +1834,6 @@ printstatus(void)
+@@ -1915,8 +1942,6 @@ printstatus(void)
  	wl_list_for_each(m, &mons, link) {
  		occ = urg = 0;
  		wl_list_for_each(c, &clients, link) {
@@ -93,7 +102,7 @@ index 4d19357..755c125 100644
  			occ |= c->tags;
  			if (c->isurgent)
  				urg |= c->tags;
-@@ -2431,6 +2456,7 @@ startdrag(struct wl_listener *listener, void *data)
+@@ -2551,6 +2576,7 @@ startdrag(struct wl_listener *listener, void *data)
  void
  tag(const Arg *arg)
  {
@@ -101,7 +110,7 @@ index 4d19357..755c125 100644
  	Client *sel = focustop(selmon);
  	if (!sel || (arg->ui & TAGMASK) == 0)
  		return;
-@@ -2438,15 +2464,25 @@ tag(const Arg *arg)
+@@ -2558,15 +2584,25 @@ tag(const Arg *arg)
  	sel->tags = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -128,7 +137,7 @@ index 4d19357..755c125 100644
  }
  
  void
-@@ -2502,12 +2538,18 @@ togglefullscreen(const Arg *arg)
+@@ -2623,12 +2659,18 @@ togglefullscreen(const Arg *arg)
  void
  toggletag(const Arg *arg)
  {
@@ -139,7 +148,7 @@ index 4d19357..755c125 100644
  		return;
  
 +	wl_list_for_each(m, &mons, link)
-+		if (m !=selmon && newtags & m->tagset[m->seltags])
++		if (m != selmon && newtags & m->tagset[m->seltags])
 +			return;
 +
  	sel->tags = newtags;
@@ -147,7 +156,7 @@ index 4d19357..755c125 100644
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
  	printstatus();
-@@ -2516,11 +2558,17 @@ toggletag(const Arg *arg)
+@@ -2637,11 +2679,17 @@ toggletag(const Arg *arg)
  void
  toggleview(const Arg *arg)
  {
@@ -165,7 +174,7 @@ index 4d19357..755c125 100644
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
  	printstatus();
-@@ -2704,13 +2752,36 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2825,13 +2873,36 @@ urgent(struct wl_listener *listener, void *data)
  void
  view(const Arg *arg)
  {
