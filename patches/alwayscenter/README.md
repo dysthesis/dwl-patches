@@ -3,7 +3,7 @@ Automatically center floating windows.
 
 ### Download
 - [git branch](https://codeberg.org/guidocella/dwl/src/branch/alwayscenter)
-- [2024-02-06](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/alwayscenter/alwayscenter.patch)
+- [2024-05-10](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/alwayscenter/alwayscenter.patch)
 
 ### Authors
 - [Guido Cella](https://codeberg.org/guidocella)
