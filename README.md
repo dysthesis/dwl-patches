@@ -7,7 +7,7 @@ Many patches previously in regular use do not cleanly apply to the current code 
 
 If you are an original author of one of these or you have the inclination to revive one of these, please follow the procedure outlined in [Instructions] for contributing new patches.
 
-Additionally, when you have write access to this repository, remove the `.md` file from [_STALE_PATCHES] for the patch which you have revived.
+In your initial pull request (or in the commit that revives the stale patch if you already have write access), remove the `.md` file from [_STALE_PATCHES] for the patch which you have revived.
 
 ## Patching
 Since dwl follows [suckless](https://suckless.org/) philosophy it doesn't provide every feature under the sun. To broaden dwl's functionality, one needs to get familiar with the concept of patching. To get your feet wet, consult [the hacking page](https://suckless.org/hacking/) of the suckless website.
