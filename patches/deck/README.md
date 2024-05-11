@@ -1,11 +1,8 @@
 ### Description
-[deck](https://dwm.suckless.org/patches/deck/) is a port of the dwm-layout with the same name. It applies the monocle-layout to the clients in the stack. The master-client is still visible. The stacked clients are like a deck of cards, hence the name.
+Adds a layout with a monocle layout for clients in the stack (port of the [deck layout for dwm](https://dwm.suckless.org/patches/deck/)); stacked clients are like a deck of cards (see below)
 
-### Scheme
 ```
-Showcase
-
-Tile :
+Tile:
 +-----------------+--------+
 |                 |        |
 |                 |  S1    |
@@ -16,7 +13,7 @@ Tile :
 |                 |        |
 +-----------------+--------+
 
-Deck :
+Deck:
 +-----------------+--------+
 |                 |        |
 |                 |        |
@@ -29,7 +26,9 @@ Deck :
 ```
 
 ### Download
-- [2023-07-09](https://github.com/djpohly/dwl/compare/main...PalanixYT:deck.patch)
+- [git branch](https://codeberg.org/anabasis/dwl/src/branch/deck)
+- [2024-05-10](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/deck/deck.patch)
 
 ### Authors
-- [Palanix](https://github.com/PalanixYT)
+- [anabasis](https://codeberg.org/anabasis)
+- [Palanix](https://codeberg.org/Palanix)
