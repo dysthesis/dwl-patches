@@ -12,7 +12,7 @@ with the example settings in `config.h`:
 ```c
 static const Block blocks[] = {
 	/*Icon*/	/*Command*/		/*Update Interval*/	/*Update Signal*/
-	{"", "cat /tmp/dwl-keymap",					0,		1},
+	{"", "cat /tmp/dwl-kblayout",					0,		1},
 };
 ```
 
@@ -21,8 +21,7 @@ implementation happens to share some code. If you don't need
 any of these features, just disable it in `config.h`.
 
 ### Download
-- [git branch](https://codeberg.org/ForzCross/dwl/src/branch/kblayout.patch)
-- [2024-01-21](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/kblayout/kblayout.patch)
+- [2024-05-17](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/kblayout/kblayout.patch)
 
 ### Authors
 - [ForzCross](https://codeberg.org/ForzCross)
