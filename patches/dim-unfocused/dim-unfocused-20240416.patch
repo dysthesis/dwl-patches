@@ -1,14 +1,3 @@
-From cd3b5580dbf38f54b54d5bfb6039e0039cbd6b21 Mon Sep 17 00:00:00 2001
-From: Dhruva Sambrani <44899822+DhruvaSambrani@users.noreply.github.com>
-Date: Thu, 16 May 2024 12:26:05 +0200
-Subject: [PATCH] clean git history
-
----
- client.h     |  6 ++++++
- config.def.h | 13 ++++++++-----
- dwl.c        | 40 +++++++++++++++++++++++++++++++++++-----
- 3 files changed, 49 insertions(+), 10 deletions(-)
-
 diff --git a/client.h b/client.h
 index 800b867..4d83248 100644
 --- a/client.h
@@ -27,7 +16,7 @@ index 800b867..4d83248 100644
  client_set_fullscreen(Client *c, int fullscreen)
  {
 diff --git a/config.def.h b/config.def.h
-index 8f498d2..d3950f9 100644
+index 8847e58..36ac2a1 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -10,6 +10,7 @@ static const unsigned int borderpx         = 1;  /* border pixel of windows */
@@ -66,7 +55,7 @@ index 8f498d2..d3950f9 100644
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_parenright, tag,            {.ui = ~0} },
  	{ MODKEY,                    XKB_KEY_comma,      focusmon,       {.i = WLR_DIRECTION_LEFT} },
 diff --git a/dwl.c b/dwl.c
-index bf763df..ca88ad0 100644
+index bf763df..abd7112 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -109,6 +109,7 @@ typedef struct {
@@ -139,15 +128,6 @@ index bf763df..ca88ad0 100644
  			client_activate_surface(old, 0);
  		}
  	}
-@@ -1566,7 +1573,7 @@ mapnotify(struct wl_listener *listener, void *data)
- {
- 	/* Called when the surface is mapped, or ready to display on-screen. */
- 	Client *p = NULL;
--	Client *w, *c = wl_container_of(listener, c, map);
-+	Client *w, *d, *c = wl_container_of(listener, c, map);
- 	Monitor *m;
- 	int i;
- 
 @@ -1599,6 +1606,10 @@ mapnotify(struct wl_listener *listener, void *data)
  		c->border[i]->node.data = c;
  	}
@@ -159,18 +139,7 @@ index bf763df..ca88ad0 100644
  	/* Initialize client geometry with room for border */
  	client_set_tiled(c, WLR_EDGE_TOP | WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
  	c->geom.width += 2 * c->bw;
-@@ -1617,6 +1628,10 @@ mapnotify(struct wl_listener *listener, void *data)
- 		setmon(c, p->mon, p->tags);
- 	} else {
- 		applyrules(c);
-+		d = focustop(selmon);
-+		if (d) {
-+			client_set_dimmer_state(d, 0);
-+		}
- 	}
- 	printstatus();
- 
-@@ -2040,7 +2055,7 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2040,7 +2051,7 @@ resize(Client *c, struct wlr_box geo, int interact)
  	c->geom = geo;
  	applybounds(c, bbox);
  
@@ -179,7 +148,7 @@ index bf763df..ca88ad0 100644
  	wlr_scene_node_set_position(&c->scene->node, c->geom.x, c->geom.y);
  	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
  	wlr_scene_rect_set_size(c->border[0], c->geom.width, c->bw);
-@@ -2050,6 +2065,8 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2050,6 +2061,8 @@ resize(Client *c, struct wlr_box geo, int interact)
  	wlr_scene_node_set_position(&c->border[1]->node, 0, c->geom.height - c->bw);
  	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
  	wlr_scene_node_set_position(&c->border[3]->node, c->geom.width - c->bw, c->bw);
@@ -188,7 +157,7 @@ index bf763df..ca88ad0 100644
  
  	/* this is a no-op if size hasn't changed */
  	c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
-@@ -2603,6 +2620,19 @@ tile(Monitor *m)
+@@ -2603,6 +2616,17 @@ tile(Monitor *m)
  	}
  }
  
@@ -200,14 +169,9 @@ index bf763df..ca88ad0 100644
 +   {
 +       client_set_dimmer_state(c, 1);
 +   }
-+   c = focustop(selmon);
-+   if (c)
-+	client_set_dimmer_state(c, 0);
++   client_set_dimmer_state(focustop(selmon), 0);
 +}
 +
  void
  togglefloating(const Arg *arg)
  {
--- 
-2.45.1
-
