@@ -5,7 +5,7 @@
 ## STALE Patches
 Many patches previously in regular use do not cleanly apply to the current code base. Following the migration to Codeberg, these stale patch descriptions and details are being stored for the time being at [_STALE_PATCHES].
 
-If you are an original author of one of these or you have the inclination to revive one of these, please follow the procedure outlined in [Instructions] for contributing new patches.
+If you are an original author of one of these or you have the inclination to revive one of these, please follow the same procedures outlined below for contributing new patches.
 
 In your initial pull request (or in the commit that revives the stale patch if you already have write access), remove the `.md` file from [_STALE_PATCHES] for the patch which you have revived.
 
