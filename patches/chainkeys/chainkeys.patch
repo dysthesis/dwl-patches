@@ -1,15 +1,15 @@
-From 8cad102fd59463e8a2238845399dcaa1f759508c Mon Sep 17 00:00:00 2001
+From 226e204ec7fb6d6840a984ef8e8ec1d2514e985f Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Tue, 2 Jan 2024 10:33:59 +1000
-Subject: [PATCH 1/2] chainkeys
+Subject: [PATCH] chainkeys
 
 ---
  config.def.h | 62 ++++++++++++++++++++++++++--------------------------
- dwl.c        | 22 ++++++++++++++++++-
- 2 files changed, 52 insertions(+), 32 deletions(-)
+ dwl.c        | 23 ++++++++++++++++++-
+ 2 files changed, 53 insertions(+), 32 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 9009517..f4b7b2a 100644
+index 8f498d2f..1c182547 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -105,10 +105,10 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
@@ -27,7 +27,7 @@ index 9009517..f4b7b2a 100644
  
  /* helper for spawning shell commands in the pre dwm-5.0 fashion */
  #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
-@@ -119,30 +119,30 @@ static const char *menucmd[] = { "bemenu-run", NULL };
+@@ -119,30 +119,30 @@ static const char *menucmd[] = { "wmenu-run", NULL };
  
  static const Key keys[] = {
  	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
@@ -62,8 +62,8 @@ index 9009517..f4b7b2a 100644
 +	{ MODKEY,                    -1, XKB_KEY_k,          focusstack,     {.i = -1} },
 +	{ MODKEY,                    -1, XKB_KEY_i,          incnmaster,     {.i = +1} },
 +	{ MODKEY,                    -1, XKB_KEY_d,          incnmaster,     {.i = -1} },
-+	{ MODKEY,                    -1, XKB_KEY_h,          setmfact,       {.f = -0.05} },
-+	{ MODKEY,                    -1, XKB_KEY_l,          setmfact,       {.f = +0.05} },
++	{ MODKEY,                    -1, XKB_KEY_h,          setmfact,       {.f = -0.05f} },
++	{ MODKEY,                    -1, XKB_KEY_l,          setmfact,       {.f = +0.05f} },
 +	{ MODKEY,                    -1, XKB_KEY_Return,     zoom,           {0} },
 +	{ MODKEY,                    -1, XKB_KEY_Tab,        view,           {0} },
 +	{ MODKEY|WLR_MODIFIER_SHIFT, -1, XKB_KEY_C,          killclient,     {0} },
@@ -101,26 +101,26 @@ index 9009517..f4b7b2a 100644
  	CHVT(7), CHVT(8), CHVT(9), CHVT(10), CHVT(11), CHVT(12),
  };
 diff --git a/dwl.c b/dwl.c
-index f25ac2f..8ffad73 100644
+index bf763dfc..05e667f8 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -139,6 +139,7 @@ typedef struct {
+@@ -143,6 +143,7 @@ typedef struct {
  
  typedef struct {
  	uint32_t mod;
-+	xkb_keysym_t chain;
++	int chain;
  	xkb_keysym_t keysym;
  	void (*func)(const Arg *);
  	const Arg arg;
-@@ -338,6 +339,7 @@ static const char broken[] = "broken";
+@@ -353,6 +354,7 @@ static const char broken[] = "broken";
  static pid_t child_pid = -1;
  static int locked;
  static void *exclusive_focus;
-+static xkb_keysym_t chainkey = -1;
++static int chainkey = -1;
  static struct wl_display *dpy;
  static struct wlr_backend *backend;
  static struct wlr_scene *scene;
-@@ -1363,10 +1365,28 @@ keybinding(uint32_t mods, xkb_keysym_t sym)
+@@ -1438,11 +1440,30 @@ keybinding(uint32_t mods, xkb_keysym_t sym)
  	const Key *k;
  	for (k = keys; k < END(keys); k++) {
  		if (CLEANMASK(mods) == CLEANMASK(k->mod)
@@ -141,75 +141,17 @@ index f25ac2f..8ffad73 100644
 +			return 1;
 +		}
 +		else if (CLEANMASK(mods) == CLEANMASK(k->mod)
-+				&& k->chain == sym
++				&& k->chain == (int)sym
 +				&& chainkey == -1
 +				&& k->func) {
 +			chainkey = sym;
 +			return 1;
 +		}
  	}
++	chainkey = -1;
  	return 0;
  }
--- 
-2.43.0
-
-
-From 0b11cce166dc0daabe305622d593532407a178ed Mon Sep 17 00:00:00 2001
-From: Ben Collerson <benc@benc.cc>
-Date: Tue, 2 Jan 2024 10:33:59 +1000
-Subject: [PATCH 2/2] fix types - signed ints should be signed.
-
----
- config.def.h | 4 ++--
- dwl.c        | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/config.def.h b/config.def.h
-index f4b7b2a..ac70906 100644
---- a/config.def.h
-+++ b/config.def.h
-@@ -126,8 +126,8 @@ static const Key keys[] = {
- 	{ MODKEY,                    -1, XKB_KEY_k,          focusstack,     {.i = -1} },
- 	{ MODKEY,                    -1, XKB_KEY_i,          incnmaster,     {.i = +1} },
- 	{ MODKEY,                    -1, XKB_KEY_d,          incnmaster,     {.i = -1} },
--	{ MODKEY,                    -1, XKB_KEY_h,          setmfact,       {.f = -0.05} },
--	{ MODKEY,                    -1, XKB_KEY_l,          setmfact,       {.f = +0.05} },
-+	{ MODKEY,                    -1, XKB_KEY_h,          setmfact,       {.f = -0.05f} },
-+	{ MODKEY,                    -1, XKB_KEY_l,          setmfact,       {.f = +0.05f} },
- 	{ MODKEY,                    -1, XKB_KEY_Return,     zoom,           {0} },
- 	{ MODKEY,                    -1, XKB_KEY_Tab,        view,           {0} },
- 	{ MODKEY|WLR_MODIFIER_SHIFT, -1, XKB_KEY_C,          killclient,     {0} },
-diff --git a/dwl.c b/dwl.c
-index 8ffad73..cbb9cbf 100644
---- a/dwl.c
-+++ b/dwl.c
-@@ -139,7 +139,7 @@ typedef struct {
  
- typedef struct {
- 	uint32_t mod;
--	xkb_keysym_t chain;
-+	int chain;
- 	xkb_keysym_t keysym;
- 	void (*func)(const Arg *);
- 	const Arg arg;
-@@ -339,7 +339,7 @@ static const char broken[] = "broken";
- static pid_t child_pid = -1;
- static int locked;
- static void *exclusive_focus;
--static xkb_keysym_t chainkey = -1;
-+static int chainkey = -1;
- static struct wl_display *dpy;
- static struct wlr_backend *backend;
- static struct wlr_scene *scene;
-@@ -1381,7 +1381,7 @@ keybinding(uint32_t mods, xkb_keysym_t sym)
- 			return 1;
- 		}
- 		else if (CLEANMASK(mods) == CLEANMASK(k->mod)
--				&& k->chain == sym
-+				&& k->chain == (int)sym
- 				&& chainkey == -1
- 				&& k->func) {
- 			chainkey = sym;
 -- 
 2.43.0
 
