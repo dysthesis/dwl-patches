@@ -22,7 +22,7 @@ Jumping to the last selected window is not yet implemented.
 
 ### Download
 - [git branch](https://codeberg.org/jeromecst/dwl/src/branch/stacker)
-- [2024-05-17](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/stacker/STACKER.patch)
+- [2024-05-17](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/stacker/stacker.patch)
 
 ### Authors
 - [jeromecst](https://codeberg.org/jeromecst)
