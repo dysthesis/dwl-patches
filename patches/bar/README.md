@@ -16,9 +16,9 @@ slstatus -s | dwl
 - [git branch](https://codeberg.org/sewn/dwl/src/branch/bar)
 - [2024-05-28](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/bar/bar.patch)
 
-Below is a preview of the barpadding and barborder patches applied.
+Below is a preview of the patch.
 
-![bar, barpadding and border patch preview](bar-with-barpadding-and-border.png)
+![bar patch preview](bar.png)
 
 For colors, they are in `RRRR, GGGG, BBBB, AAAA` format due to inheriting the `pixman_color_t` type, an example for the color `0x282a36` would be `0x2828, 0x2a2a, 0x3636, 0xffff`
 
