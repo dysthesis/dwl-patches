@@ -1,6 +1,6 @@
-From 54b6c4591aeae583ea87fabde0d16b81f420288d Mon Sep 17 00:00:00 2001
+From 5a96a47d708e94f1789daed2c1342279aa930d2f Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Fri, 10 May 2024 17:43:33 +0200
+Date: Sat, 1 Jun 2024 23:46:06 +0200
 Subject: [PATCH] center floating windows
 
 ---
@@ -8,20 +8,20 @@ Subject: [PATCH] center floating windows
  1 file changed, 4 insertions(+)
 
 diff --git a/dwl.c b/dwl.c
-index d508d79..1c3c227 100644
+index 52bfbc8..c912b04 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -470,6 +470,10 @@ applyrules(Client *c)
- 			}
- 		}
+@@ -1618,6 +1618,10 @@ mapnotify(struct wl_listener *listener, void *data)
+ 	} else {
+ 		applyrules(c);
  	}
-+	if (mon) {
-+		c->geom.x = (mon->w.width - c->geom.width) / 2 + mon->m.x;
-+		c->geom.y = (mon->w.height - c->geom.height) / 2 + mon->m.y;
++	if (c->mon) {
++		c->geom.x = (c->mon->w.width - c->geom.width) / 2 + c->mon->m.x;
++		c->geom.y = (c->mon->w.height - c->geom.height) / 2 + c->mon->m.y;
 +	}
- 	setmon(c, mon, newtags);
- }
+ 	printstatus();
  
+ unset_fullscreen:
 -- 
-2.45.0
+2.45.1
 
