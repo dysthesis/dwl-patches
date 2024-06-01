@@ -21,7 +21,7 @@ implementation happens to share some code. If you don't need
 any of these features, just disable it in `config.h`.
 
 ### Download
-- [2024-05-17](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/kblayout/kblayout.patch)
+- [2024-06-01](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/kblayout/kblayout.patch)
 
 ### Authors
 - [ForzCross](https://codeberg.org/ForzCross)
