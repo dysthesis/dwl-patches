@@ -1,0 +1,20 @@
+### Description
+This patch adds ability to pass specified in config header keys globally, somewhat in hyprlands approach.
+This might deal with waylands lack of global shortcuts.
+
+Example:
+```
+static const PassKeypressRule pass_rules[] = {
+	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_Home),
+};
+```
+will pass `MODKEY + Home` key to obs(flatpak version) regardless of what client is currently focused if any.
+String "com.obsproject.Studio" should be exact match for appid of the client. To get appid use [dwlmsg](https://codeberg.org/notchoc/dwlmsg),
+or run stock dwl from a terminal then launch the needed application inside, dwl will print all the info to the stdin.
+
+
+### Download
+- [git branch](https://codeberg.org/korei999/dwl/src/branch/PATCHNAME)
+- [2024-06-03](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
+### Authors
+- [YOUR_NICK](https://codeberg.org/USERNAME)

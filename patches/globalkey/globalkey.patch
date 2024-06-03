@@ -1,0 +1,111 @@
+From f0057ad20b7add835a391faed26698376ff6b653 Mon Sep 17 00:00:00 2001
+From: korei999 <ju7t1xe@gmail.com>
+Date: Mon, 3 Jun 2024 03:31:08 +0300
+Subject: [PATCH] implement globalkey patch
+
+---
+ config.def.h |  8 ++++++++
+ dwl.c        | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 57 insertions(+)
+
+diff --git a/config.def.h b/config.def.h
+index 8f498d2..c23144b 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -110,6 +110,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
+ 	{ MODKEY|WLR_MODIFIER_SHIFT, SKEY,           tag,             {.ui = 1 << TAG} }, \
+ 	{ MODKEY|WLR_MODIFIER_CTRL|WLR_MODIFIER_SHIFT,SKEY,toggletag, {.ui = 1 << TAG} }
+ 
++#define ADDPASSRULE(S, M, K) {.appid = S, .len = LENGTH(S), .mod = M, .keycode = K}
++
++static const PassKeypressRule pass_rules[] = {
++	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_Home),
++	ADDPASSRULE("havoc",                 0,      XKB_KEY_e),
++	/* each instance of havoc will receive input 'e' for example, regardless of which client is focused */
++};
++
+ /* helper for spawning shell commands in the pre dwm-5.0 fashion */
+ #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
+ 
+diff --git a/dwl.c b/dwl.c
+index 52bfbc8..baa6edc 100644
+--- a/dwl.c
++++ b/dwl.c
+@@ -217,6 +217,13 @@ typedef struct {
+ 	int x, y;
+ } MonitorRule;
+ 
++typedef struct {
++	const char* appid;
++	size_t len;
++	uint32_t mod;
++	uint32_t keycode;
++} PassKeypressRule;
++
+ typedef struct {
+ 	struct wlr_pointer_constraint_v1 *constraint;
+ 	struct wl_listener destroy;
+@@ -288,6 +295,7 @@ static void incnmaster(const Arg *arg);
+ static void inputdevice(struct wl_listener *listener, void *data);
+ static int keybinding(uint32_t mods, xkb_keysym_t sym);
+ static void keypress(struct wl_listener *listener, void *data);
++static void keypresspass(struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t sym);
+ static void keypressmod(struct wl_listener *listener, void *data);
+ static int keyrepeat(void *data);
+ static void killclient(const Arg *arg);
+@@ -1488,11 +1496,52 @@ keypress(struct wl_listener *listener, void *data)
+ 		return;
+ 
+ 	wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
++
++	/* grab the first one sym, there's always one as far as i tested */
++	keypresspass(event, mods, syms[0]);
++
+ 	/* Pass unhandled keycodes along to the client. */
+ 	wlr_seat_keyboard_notify_key(seat, event->time_msec,
+ 			event->keycode, event->state);
+ }
+ 
++void
++keypresspass(struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t sym)
++{
++	Client *c = NULL, *savedc = focustop(selmon);
++	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
++	uint32_t keycodes[32] = {0};
++
++	wl_list_for_each(c, &clients, link) {
++		if (c && c != savedc) {
++			const char* appid = client_get_appid(c);
++			if (appid) {
++				for (size_t r = 0; r < LENGTH(pass_rules); r++) {
++					if (strncmp(appid, pass_rules[r].appid, pass_rules[r].len) == 0) {
++
++						if (pass_rules[r].keycode == CLEANMASK(sym) && pass_rules[r].mod == CLEANMASK(mods)) {
++							wlr_seat_keyboard_enter(seat, client_surface(c), keycodes, 0, &keyboard->modifiers);
++							wlr_seat_keyboard_notify_key(seat, event->time_msec, event->keycode, event->state);
++
++#ifdef XWAYLAND
++							/* https://github.com/hyprwm/Hyprland/blob/main/src/managers/KeybindManager.cpp#L2022 */
++							if (client_is_x11(c)) {
++								seat->keyboard_state.focused_client = NULL;
++								seat->keyboard_state.focused_surface = NULL;
++							}
++#endif
++						}
++					}
++				}
++			}
++		}
++	}
++
++	/* go back to original client, if it existed */
++	if (savedc)
++		wlr_seat_keyboard_enter(seat, client_surface(savedc), keycodes, 0, &keyboard->modifiers);
++}
++
+ void
+ keypressmod(struct wl_listener *listener, void *data)
+ {
+-- 
+2.45.1
+
