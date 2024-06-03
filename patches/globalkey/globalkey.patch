@@ -1,18 +1,18 @@
-From 62ba4065edc0cd10682a32d1ea7b7b066d029e3e Mon Sep 17 00:00:00 2001
+From e4b889bbde9568913d54b70bf9f54d2e5e404b68 Mon Sep 17 00:00:00 2001
 From: korei999 <ju7t1xe@gmail.com>
-Date: Mon, 3 Jun 2024 05:00:55 +0300
-Subject: [PATCH] implement globalkey patch
+Date: Mon, 3 Jun 2024 13:26:43 +0300
+Subject: [PATCH] update globalkey patch
 
 ---
  config.def.h |  8 ++++++++
- dwl.c        | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ dwl.c        | 47 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+)
 
 diff --git a/config.def.h b/config.def.h
-index 8f498d2..c23144b 100644
+index a784eb4..0d2bd44 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -110,6 +110,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
+@@ -112,6 +112,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
  	{ MODKEY|WLR_MODIFIER_SHIFT, SKEY,           tag,             {.ui = 1 << TAG} }, \
  	{ MODKEY|WLR_MODIFIER_CTRL|WLR_MODIFIER_SHIFT,SKEY,toggletag, {.ui = 1 << TAG} }
  
@@ -28,10 +28,10 @@ index 8f498d2..c23144b 100644
  #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
  
 diff --git a/dwl.c b/dwl.c
-index 52bfbc8..d4686d0 100644
+index 356b913..7046e52 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -217,6 +217,13 @@ typedef struct {
+@@ -218,6 +218,13 @@ typedef struct {
  	int x, y;
  } MonitorRule;
  
@@ -45,7 +45,7 @@ index 52bfbc8..d4686d0 100644
  typedef struct {
  	struct wlr_pointer_constraint_v1 *constraint;
  	struct wl_listener destroy;
-@@ -288,6 +295,7 @@ static void incnmaster(const Arg *arg);
+@@ -291,6 +298,7 @@ static void incnmaster(const Arg *arg);
  static void inputdevice(struct wl_listener *listener, void *data);
  static int keybinding(uint32_t mods, xkb_keysym_t sym);
  static void keypress(struct wl_listener *listener, void *data);
@@ -53,25 +53,22 @@ index 52bfbc8..d4686d0 100644
  static void keypressmod(struct wl_listener *listener, void *data);
  static int keyrepeat(void *data);
  static void killclient(const Arg *arg);
-@@ -1488,11 +1496,54 @@ keypress(struct wl_listener *listener, void *data)
- 		return;
- 
- 	wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
-+
-+	/* grab the first one sym, there's always one as far as i tested */
-+	keypresspass(event, mods, syms[0]);
-+
+@@ -1540,6 +1548,45 @@ keypress(struct wl_listener *listener, void *data)
  	/* Pass unhandled keycodes along to the client. */
  	wlr_seat_keyboard_notify_key(seat, event->time_msec,
  			event->keycode, event->state);
- }
- 
++
++	/* grab the first one sym, there's always one as far as i tested */
++	keypresspass(event, mods, syms[0]);
++}
++
 +void
 +keypresspass(struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t sym)
 +{
 +	Client *c = NULL, *savedc = focustop(selmon);
 +	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
 +	uint32_t keycodes[32] = {0};
++	struct wlr_surface *last_surface = seat->keyboard_state.focused_surface;
 +
 +	wl_list_for_each(c, &clients, link) {
 +		if (c && c != savedc) {
@@ -98,16 +95,10 @@ index 52bfbc8..d4686d0 100644
 +		}
 +	}
 +
-+	/* go back to original client, if it existed */
-+	if (savedc)
-+		wlr_seat_keyboard_enter(seat, client_surface(savedc), keycodes, 0, &keyboard->modifiers);
-+	else
-+		wlr_seat_keyboard_clear_focus(seat);
-+}
-+
++	wlr_seat_keyboard_enter(seat, last_surface, keycodes, 0, &keyboard->modifiers);
+ }
+ 
  void
- keypressmod(struct wl_listener *listener, void *data)
- {
 -- 
 2.45.1
 
