@@ -10,7 +10,7 @@ static const PassKeypressRule pass_rules[] = {
 ```
 will pass `MODKEY + Home` key to obs(flatpak version) regardless of what client is currently focused if any.
 String "com.obsproject.Studio" should be exact match for appid of the client. To get appid use [dwlmsg](https://codeberg.org/notchoc/dwlmsg),
-or run stock dwl from a terminal then launch the needed application inside, dwl will print all the info to the stdin.
+or run stock dwl from a terminal then launch the needed application inside, dwl will print all the info to the stdout.
 
 
 ### Download
