@@ -1,12 +1,12 @@
-From f0057ad20b7add835a391faed26698376ff6b653 Mon Sep 17 00:00:00 2001
+From 62ba4065edc0cd10682a32d1ea7b7b066d029e3e Mon Sep 17 00:00:00 2001
 From: korei999 <ju7t1xe@gmail.com>
-Date: Mon, 3 Jun 2024 03:31:08 +0300
+Date: Mon, 3 Jun 2024 05:00:55 +0300
 Subject: [PATCH] implement globalkey patch
 
 ---
  config.def.h |  8 ++++++++
- dwl.c        | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 57 insertions(+)
+ dwl.c        | 51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 59 insertions(+)
 
 diff --git a/config.def.h b/config.def.h
 index 8f498d2..c23144b 100644
@@ -28,7 +28,7 @@ index 8f498d2..c23144b 100644
  #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
  
 diff --git a/dwl.c b/dwl.c
-index 52bfbc8..baa6edc 100644
+index 52bfbc8..d4686d0 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -217,6 +217,13 @@ typedef struct {
@@ -53,7 +53,7 @@ index 52bfbc8..baa6edc 100644
  static void keypressmod(struct wl_listener *listener, void *data);
  static int keyrepeat(void *data);
  static void killclient(const Arg *arg);
-@@ -1488,11 +1496,52 @@ keypress(struct wl_listener *listener, void *data)
+@@ -1488,11 +1496,54 @@ keypress(struct wl_listener *listener, void *data)
  		return;
  
  	wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
@@ -80,7 +80,7 @@ index 52bfbc8..baa6edc 100644
 +				for (size_t r = 0; r < LENGTH(pass_rules); r++) {
 +					if (strncmp(appid, pass_rules[r].appid, pass_rules[r].len) == 0) {
 +
-+						if (pass_rules[r].keycode == CLEANMASK(sym) && pass_rules[r].mod == CLEANMASK(mods)) {
++						if (pass_rules[r].keycode == sym && pass_rules[r].mod == CLEANMASK(mods)) {
 +							wlr_seat_keyboard_enter(seat, client_surface(c), keycodes, 0, &keyboard->modifiers);
 +							wlr_seat_keyboard_notify_key(seat, event->time_msec, event->keycode, event->state);
 +
@@ -101,6 +101,8 @@ index 52bfbc8..baa6edc 100644
 +	/* go back to original client, if it existed */
 +	if (savedc)
 +		wlr_seat_keyboard_enter(seat, client_surface(savedc), keycodes, 0, &keyboard->modifiers);
++	else
++		wlr_seat_keyboard_clear_focus(seat);
 +}
 +
  void
