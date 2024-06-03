@@ -1,4 +1,4 @@
-From 6e619016b45230791484ea305f005e3b29f295f3 Mon Sep 17 00:00:00 2001
+From 49a5dab24f7571d4888820f01c38cd899b7ee6cc Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Sat, 4 May 2024 01:16:12 +0800
 Subject: [PATCH] implement wlr-tablet-v2
@@ -6,8 +6,8 @@ Subject: [PATCH] implement wlr-tablet-v2
 ---
  Makefile     |   5 +-
  config.def.h |   1 +
- dwl.c        | 224 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 229 insertions(+), 1 deletion(-)
+ dwl.c        | 225 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 230 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
 index a67fdd3..74ccc01 100644
@@ -33,7 +33,7 @@ index a67fdd3..74ccc01 100644
  config.h:
  	cp config.def.h $@
 diff --git a/config.def.h b/config.def.h
-index 8847e58..12fed96 100644
+index a784eb4..246356a 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -4,6 +4,7 @@
@@ -45,7 +45,7 @@ index 8847e58..12fed96 100644
  static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
  static const unsigned int borderpx         = 1;  /* border pixel of windows */
 diff --git a/dwl.c b/dwl.c
-index bf763df..6e17222 100644
+index 356b913..af646ff 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -47,6 +47,9 @@
@@ -58,7 +58,7 @@ index bf763df..6e17222 100644
  #include <wlr/types/wlr_viewporter.h>
  #include <wlr/types/wlr_virtual_keyboard_v1.h>
  #include <wlr/types/wlr_virtual_pointer_v1.h>
-@@ -264,6 +267,7 @@ static void createmon(struct wl_listener *listener, void *data);
+@@ -266,6 +269,7 @@ static void createmon(struct wl_listener *listener, void *data);
  static void createnotify(struct wl_listener *listener, void *data);
  static void createpointer(struct wlr_pointer *pointer);
  static void createpointerconstraint(struct wl_listener *listener, void *data);
@@ -66,17 +66,17 @@ index bf763df..6e17222 100644
  static void cursorconstrain(struct wlr_pointer_constraint_v1 *constraint);
  static void cursorframe(struct wl_listener *listener, void *data);
  static void cursorwarptohint(void);
-@@ -277,6 +281,9 @@ static void destroynotify(struct wl_listener *listener, void *data);
- static void destroypointerconstraint(struct wl_listener *listener, void *data);
+@@ -280,6 +284,9 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
  static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroysessionmgr(struct wl_listener *listener, void *data);
+ static void destroykeyboardgroup(struct wl_listener *listener, void *data);
 +static void destroytablet(struct wl_listener *listener, void *data);
 +static void destroytabletsurfacenotify(struct wl_listener *listener, void *data);
 +static void destroytablettool(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
-@@ -329,6 +336,11 @@ static void spawn(const Arg *arg);
+@@ -332,6 +339,11 @@ static void spawn(const Arg *arg);
  static void startdrag(struct wl_listener *listener, void *data);
  static void tag(const Arg *arg);
  static void tagmon(const Arg *arg);
@@ -88,7 +88,7 @@ index bf763df..6e17222 100644
  static void tile(Monitor *m);
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
-@@ -386,6 +398,13 @@ static struct wlr_pointer_constraint_v1 *active_constraint;
+@@ -389,6 +401,13 @@ static struct wlr_pointer_constraint_v1 *active_constraint;
  static struct wlr_cursor *cursor;
  static struct wlr_xcursor_manager *cursor_mgr;
  
@@ -102,15 +102,7 @@ index bf763df..6e17222 100644
  static struct wlr_scene_rect *root_bg;
  static struct wlr_session_lock_manager_v1 *session_lock_mgr;
  static struct wlr_scene_rect *locked_bg;
-@@ -624,6 +643,7 @@ buttonpress(struct wl_listener *listener, void *data)
- 	}
- 	/* If the event wasn't handled by the compositor, notify the client with
- 	 * pointer focus that a button press has occurred */
-+
- 	wlr_seat_pointer_notify_button(seat,
- 			event->time_msec, event->button, event->state);
- }
-@@ -1041,6 +1061,28 @@ createpointerconstraint(struct wl_listener *listener, void *data)
+@@ -1078,6 +1097,28 @@ createpointerconstraint(struct wl_listener *listener, void *data)
  			&pointer_constraint->destroy, destroypointerconstraint);
  }
  
@@ -139,8 +131,8 @@ index bf763df..6e17222 100644
  void
  cursorconstrain(struct wlr_pointer_constraint_v1 *constraint)
  {
-@@ -1217,6 +1259,26 @@ destroysessionmgr(struct wl_listener *listener, void *data)
- 	wl_list_remove(&listener->link);
+@@ -1266,6 +1307,29 @@ destroykeyboardgroup(struct wl_listener *listener, void *data)
+ 	free(group);
  }
  
 +void
@@ -152,13 +144,16 @@ index bf763df..6e17222 100644
 +void
 +destroytabletsurfacenotify(struct wl_listener *listener, void *data)
 +{
++	if (tablet_curr_surface)
++		wl_list_remove(&destroy_tablet_surface_listener.link);
 +	tablet_curr_surface = NULL;
 +}
 +
 +void
 +destroytablettool(struct wl_listener *listener, void *data)
 +{
-+	wl_list_remove(&destroy_tablet_surface_listener.link);
++	if (tablet_curr_surface)
++		wl_list_remove(&destroy_tablet_surface_listener.link);
 +	tablet_curr_surface = NULL;
 +	tablet_tool = NULL;
 +}
@@ -166,7 +161,7 @@ index bf763df..6e17222 100644
  Monitor *
  dirtomon(enum wlr_direction dir)
  {
-@@ -1412,6 +1474,13 @@ inputdevice(struct wl_listener *listener, void *data)
+@@ -1461,6 +1525,12 @@ inputdevice(struct wl_listener *listener, void *data)
  	case WLR_INPUT_DEVICE_POINTER:
  		createpointer(wlr_pointer_from_input_device(device));
  		break;
@@ -174,13 +169,12 @@ index bf763df..6e17222 100644
 +		createtablet(device);
 +		break;
 +	case WLR_INPUT_DEVICE_TABLET_PAD:
-+		createtablet(device);
 +	        tablet_pad = wlr_tablet_pad_create(tablet_mgr, seat, device);
 +		break;
  	default:
  		/* TODO handle other input device types */
  		break;
-@@ -2401,6 +2470,8 @@ setup(void)
+@@ -2447,6 +2517,8 @@ setup(void)
  
  	relative_pointer_mgr = wlr_relative_pointer_manager_v1_create(dpy);
  
@@ -189,7 +183,7 @@ index bf763df..6e17222 100644
  	/*
  	 * Creates a cursor, which is a wlroots utility for tracking the cursor
  	 * image shown on screen.
-@@ -2430,6 +2501,10 @@ setup(void)
+@@ -2476,6 +2548,10 @@ setup(void)
  	LISTEN_STATIC(&cursor->events.button, buttonpress);
  	LISTEN_STATIC(&cursor->events.axis, axisnotify);
  	LISTEN_STATIC(&cursor->events.frame, cursorframe);
@@ -200,7 +194,7 @@ index bf763df..6e17222 100644
  
  	cursor_shape_mgr = wlr_cursor_shape_manager_v1_create(dpy, 1);
  	LISTEN_STATIC(&cursor_shape_mgr->events.request_set_shape, setcursorshape);
-@@ -2569,6 +2644,155 @@ tagmon(const Arg *arg)
+@@ -2571,6 +2647,155 @@ tagmon(const Arg *arg)
  		setmon(sel, dirtomon(arg->i), 0);
  }
  
