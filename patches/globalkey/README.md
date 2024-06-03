@@ -14,7 +14,7 @@ or run stock dwl from a terminal then launch the needed application inside, dwl 
 
 
 ### Download
-- [git branch](https://codeberg.org/korei999/dwl/src/branch/PATCHNAME)
-- [2024-06-03](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
+- [git branch](https://codeberg.org/korei999/dwl/src/branch/globalkey)
+- [2024-06-03](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/globalkey/globalkey.patch)
 ### Authors
-- [YOUR_NICK](https://codeberg.org/USERNAME)
+- [korei999](https://codeberg.org/korei999)
