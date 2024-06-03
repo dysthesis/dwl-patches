@@ -6,11 +6,16 @@ Example:
 ```
 static const PassKeypressRule pass_rules[] = {
 	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_Home),
+	ADDPASSRULE("discord", 0, XKB_KEY_n),
+    /* xkb key is case ignored */
 };
 ```
 will pass `MODKEY + Home` key to obs(flatpak version) regardless of what client is currently focused if any.
 String "com.obsproject.Studio" should be exact match for appid of the client. To get appid use [dwlmsg](https://codeberg.org/notchoc/dwlmsg),
 or run stock dwl from a terminal then launch the needed application inside, dwl will print all the info to the stdout.
+
+Note that if popup (like [fuzzel](https://codeberg.org/dnkl/fuzzel)) is focused, no key will be globally passed.
+This is done so these menus don't get closed after hitting some of the global keys.
 
 
 ### Download
