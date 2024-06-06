@@ -1,57 +1,57 @@
-From 4e72591e27e19f9a1023e1d7f79d30693056c81d Mon Sep 17 00:00:00 2001
+From bd10c646153c7a337b89c88c9572148c59e456ef Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Sat, 30 Dec 2023 13:39:31 +1000
 Subject: [PATCH] singlemaster
 
 ---
  config.def.h |  8 +++-----
- dwl.c        | 49 ++++++++++++++++++++++++-------------------------
- 2 files changed, 27 insertions(+), 30 deletions(-)
+ dwl.c        | 50 ++++++++++++++++++++++++--------------------------
+ 2 files changed, 27 insertions(+), 31 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index a8ed61d9..68ce5903 100644
+index a784eb4f..6f09c212 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -39,12 +39,12 @@ static const Layout layouts[] = {
- /* monitors */
+@@ -40,12 +40,12 @@ static const Layout layouts[] = {
+ /* WARNING: negative values other than (-1, -1) cause problems with xwayland clients' menus */
  /* NOTE: ALWAYS add a fallback rule, even if you are completely sure it won't be used */
  static const MonitorRule monrules[] = {
--	/* name       mfact nmaster scale layout       rotate/reflect                x    y */
+-	/* name       mfact  nmaster scale layout       rotate/reflect                x    y */
 +	/* name       mfact scale layout       rotate/reflect                x    y */
  	/* example of a HiDPI laptop monitor:
--	{ "eDP-1",    0.5,  1,      2,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
-+	{ "eDP-1",    0.5,  2,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
+-	{ "eDP-1",    0.5f,  1,      2,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
++	{ "eDP-1",    0.5f,  2,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
  	*/
  	/* defaults */
--	{ NULL,       0.55, 1,      1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
-+	{ NULL,       0.55, 1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
+-	{ NULL,       0.55f, 1,      1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
++	{ NULL,       0.55f, 1,    &layouts[0], WL_OUTPUT_TRANSFORM_NORMAL,   -1,  -1 },
  };
  
  /* keyboard */
-@@ -124,8 +124,6 @@ static const Key keys[] = {
+@@ -126,8 +126,6 @@ static const Key keys[] = {
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,     spawn,          {.v = termcmd} },
  	{ MODKEY,                    XKB_KEY_j,          focusstack,     {.i = +1} },
  	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
 -	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
 -	{ MODKEY,                    XKB_KEY_d,          incnmaster,     {.i = -1} },
- 	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05} },
- 	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05} },
+ 	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },
+ 	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05f} },
  	{ MODKEY,                    XKB_KEY_Return,     zoom,           {0} },
 diff --git a/dwl.c b/dwl.c
-index 4d19357f..2a2cc036 100644
+index 6f041a0d..3f8789da 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -64,7 +64,6 @@
+@@ -68,7 +68,6 @@
  
  /* macros */
  #define MAX(A, B)               ((A) > (B) ? (A) : (B))
 -#define MIN(A, B)               ((A) < (B) ? (A) : (B))
+ #define ROUND(X)                ((int)((X < 0) ? (X - 0.5) : (X + 0.5)))
  #define CLEANMASK(mask)         (mask & ~WLR_MODIFIER_CAPS)
  #define VISIBLEON(C, M)         ((M) && (C)->mon == (M) && ((C)->tags & (M)->tagset[(M)->seltags]))
- #define LENGTH(X)               (sizeof X / sizeof X[0])
-@@ -198,14 +197,12 @@ struct Monitor {
+@@ -204,14 +203,12 @@ struct Monitor {
  	uint32_t tagset[2];
- 	double mfact;
+ 	float mfact;
  	int gamma_lut_changed;
 -	int nmaster;
  	char ltsymbol[16];
@@ -64,7 +64,7 @@ index 4d19357f..2a2cc036 100644
  	float scale;
  	const Layout *lt;
  	enum wl_output_transform rr;
-@@ -270,7 +267,6 @@ static void focusstack(const Arg *arg);
+@@ -287,7 +284,6 @@ static void focusstack(const Arg *arg);
  static Client *focustop(Monitor *m);
  static void fullscreennotify(struct wl_listener *listener, void *data);
  static void handlesig(int signo);
@@ -72,15 +72,15 @@ index 4d19357f..2a2cc036 100644
  static void inputdevice(struct wl_listener *listener, void *data);
  static int keybinding(uint32_t mods, xkb_keysym_t sym);
  static void keypress(struct wl_listener *listener, void *data);
-@@ -862,7 +858,6 @@ createmon(struct wl_listener *listener, void *data)
+@@ -938,7 +934,6 @@ createmon(struct wl_listener *listener, void *data)
  			m->m.x = r->x;
  			m->m.y = r->y;
  			m->mfact = r->mfact;
 -			m->nmaster = r->nmaster;
- 			m->lt[0] = m->lt[1] = r->lt;
+ 			m->lt[0] = r->lt;
+ 			m->lt[1] = &layouts[LENGTH(layouts) > 1 && r->lt != &layouts[1]];
  			strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, LENGTH(m->ltsymbol));
- 			wlr_output_state_set_scale(&state, r->scale);
-@@ -1311,15 +1306,6 @@ handlesig(int signo)
+@@ -1451,15 +1446,6 @@ handlesig(int signo)
  	}
  }
  
@@ -96,27 +96,28 @@ index 4d19357f..2a2cc036 100644
  void
  inputdevice(struct wl_listener *listener, void *data)
  {
-@@ -2452,7 +2438,7 @@ tagmon(const Arg *arg)
+@@ -2589,8 +2575,7 @@ tagmon(const Arg *arg)
  void
  tile(Monitor *m)
  {
--	unsigned int i, n = 0, mw, my, ty;
+-	unsigned int mw, my, ty;
+-	int i, n = 0;
 +	unsigned int i, n = 0, mw, ty;
  	Client *c;
  
  	wl_list_for_each(c, &clients, link)
-@@ -2461,21 +2447,34 @@ tile(Monitor *m)
+@@ -2599,21 +2584,34 @@ tile(Monitor *m)
  	if (n == 0)
  		return;
  
 -	if (n > m->nmaster)
--		mw = m->nmaster ? m->w.width * m->mfact : 0;
+-		mw = m->nmaster ? ROUND(m->w.width * m->mfact) : 0;
 -	else
 +	if (n == 1)
  		mw = m->w.width;
 -	i = my = ty = 0;
 +	else
-+		mw = m->w.width * m->mfact;
++		mw = ROUND(m->w.width * m->mfact);
 +	i = ty = 0;
  	wl_list_for_each(c, &clients, link) {
  		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
@@ -151,5 +152,5 @@ index 4d19357f..2a2cc036 100644
  		}
  		i++;
 -- 
-2.43.0
+2.45.1
 
