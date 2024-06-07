@@ -24,8 +24,8 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 2. Create a branch in your Codeberg `dwl` repository for the patch you are generating and maintaining.
 
 ## Contributing Patches to `dwl-patches`
-1. If you do not have it already, add the remote for the main dwl repository in your local copy:  
-    `git remote add upstream https://codeberg.org/dwl/dwl`
+1. If you do not have it already, add the remote for the main dwl repository in your local copy and fetch it:  
+    `git remote add --fetch upstream https://codeberg.org/dwl/dwl`
 2. In your local repository of dwl, create a .patch file  
     `git format-patch upstream/main...<branch-name> --stdout > PATCHNAME.patch`
 3. Fork [https://codeberg.org/dwl/dwl-patches][dwl-patches]
