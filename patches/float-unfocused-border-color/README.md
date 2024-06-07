@@ -5,7 +5,7 @@ This patch allows you to set a color for floating windows when they are unfocuse
 
 ### Download
 - [git branch](https://codeberg.org/yuki-was-taken/dwl-patch/src/branch/float-unfocused-border-color/)
-- [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/float-unfocused-border-color/float-unfocused-border-color.patch)
+- [2024-06-07](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/float-unfocused-border-color/float-unfocused-border-color.patch)
 
 ### Authors
 - [yuki](https://codeberg.org/yuki-was-taken)
