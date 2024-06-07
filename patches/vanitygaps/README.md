@@ -3,7 +3,7 @@ Adds (inner) gaps between client windows and (outer) gaps between windows and th
 
 ### Download
 - [git branch](https://codeberg.org/sevz/dwl/src/branch/vanitygaps)
-- [2023-11-25](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/vanitygaps/vanitygaps.patch)
+- [2024-06-07](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/vanitygaps/vanitygaps.patch)
 
 ### Authors
 - [sevz](https://codeberg.org/sevz)
