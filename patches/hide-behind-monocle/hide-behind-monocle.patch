@@ -1,4 +1,4 @@
-From 1ba8580b2596c14b9305f1e7cb8d88f54367af59 Mon Sep 17 00:00:00 2001
+From cd89b1f0c2cc9f5cb7a33d332854f56448616611 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
  <leohdz172@proton.me>
 Date: Sat, 8 Jul 2023 17:25:16 -0600
@@ -13,10 +13,10 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  1 file changed, 52 insertions(+), 32 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 10d5a5b..07659ea 100644
+index 6f041a0d..8c1abc6c 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -267,9 +267,10 @@ static Monitor *dirtomon(enum wlr_direction dir);
+@@ -284,9 +284,10 @@ static Monitor *dirtomon(enum wlr_direction dir);
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
  static void focusstack(const Arg *arg);
@@ -28,7 +28,7 @@ index 10d5a5b..07659ea 100644
  static void incnmaster(const Arg *arg);
  static void inputdevice(struct wl_listener *listener, void *data);
  static int keybinding(uint32_t mods, xkb_keysym_t sym);
-@@ -464,7 +465,7 @@ arrange(Monitor *m)
+@@ -491,7 +492,7 @@ arrange(Monitor *m)
  	}
  
  	wlr_scene_node_set_enabled(&m->fullscreen_bg->node,
@@ -37,7 +37,7 @@ index 10d5a5b..07659ea 100644
  
  	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, LENGTH(m->ltsymbol));
  
-@@ -700,7 +701,7 @@ closemon(Monitor *m)
+@@ -739,7 +740,7 @@ closemon(Monitor *m)
  		if (c->mon == m)
  			setmon(c, selmon, c->tags);
  	}
@@ -46,25 +46,25 @@ index 10d5a5b..07659ea 100644
  	printstatus();
  }
  
-@@ -1030,7 +1031,7 @@ void
+@@ -1144,7 +1145,7 @@ void
  destroydragicon(struct wl_listener *listener, void *data)
  {
  	/* Focus enter isn't sent during drag, so refocus the focused node. */
 -	focusclient(focustop(selmon), 1);
 +	focusclient(focustop(selmon, 0), 1);
- 	motionnotify(0);
+ 	motionnotify(0, NULL, 0, 0, 0, 0);
  }
  
-@@ -1066,7 +1067,7 @@ destroylock(SessionLock *lock, int unlock)
+@@ -1180,7 +1181,7 @@ destroylock(SessionLock *lock, int unlock)
  
  	wlr_scene_node_set_enabled(&locked_bg->node, 0);
  
 -	focusclient(focustop(selmon), 0);
 +	focusclient(focustop(selmon, 0), 0);
- 	motionnotify(0);
+ 	motionnotify(0, NULL, 0, 0, 0, 0);
  
  destroy:
-@@ -1095,7 +1096,7 @@ destroylocksurface(struct wl_listener *listener, void *data)
+@@ -1209,7 +1210,7 @@ destroylocksurface(struct wl_listener *listener, void *data)
  		surface = wl_container_of(cur_lock->surfaces.next, surface, link);
  		client_notify_enter(surface->surface, wlr_seat_get_keyboard(seat));
  	} else if (!locked) {
@@ -73,7 +73,7 @@ index 10d5a5b..07659ea 100644
  	} else {
  		wlr_seat_keyboard_clear_focus(seat);
  	}
-@@ -1186,6 +1187,7 @@ focusclient(Client *c, int lift)
+@@ -1326,6 +1327,7 @@ focusclient(Client *c, int lift)
  		wl_list_insert(&fstack, &c->flink);
  		selmon = c->mon;
  		c->isurgent = 0;
@@ -81,7 +81,7 @@ index 10d5a5b..07659ea 100644
  		client_restack_surface(c);
  
  		/* Don't change border color if there is an exclusive focus or we are
-@@ -1240,14 +1242,14 @@ focusmon(const Arg *arg)
+@@ -1380,14 +1382,14 @@ focusmon(const Arg *arg)
  			selmon = dirtomon(arg->i);
  		while (!selmon->wlr_output->enabled && i++ < nmons);
  	}
@@ -95,10 +95,10 @@ index 10d5a5b..07659ea 100644
  	/* Focus the next or previous client (in tiling order) on selmon */
 -	Client *c, *sel = focustop(selmon);
 +	Client *c, *sel = focustop(selmon, 0);
- 	if (!sel || sel->isfullscreen)
+ 	if (!sel || (sel->isfullscreen && !client_has_children(sel)))
  		return;
  	if (arg->i > 0) {
-@@ -1273,12 +1275,15 @@ focusstack(const Arg *arg)
+@@ -1413,12 +1415,15 @@ focusstack(const Arg *arg)
   * will focus the topmost client of this mon, when actually will
   * only return that client */
  Client *
@@ -116,7 +116,7 @@ index 10d5a5b..07659ea 100644
  	}
  	return NULL;
  }
-@@ -1311,6 +1316,22 @@ handlesig(int signo)
+@@ -1451,6 +1456,22 @@ handlesig(int signo)
  	}
  }
  
@@ -139,7 +139,7 @@ index 10d5a5b..07659ea 100644
  void
  incnmaster(const Arg *arg)
  {
-@@ -1449,7 +1470,7 @@ keyrepeat(void *data)
+@@ -1589,7 +1610,7 @@ keyrepeat(void *data)
  void
  killclient(const Arg *arg)
  {
@@ -148,7 +148,7 @@ index 10d5a5b..07659ea 100644
  	if (sel)
  		client_send_close(sel);
  }
-@@ -1584,8 +1605,7 @@ monocle(Monitor *m)
+@@ -1722,8 +1743,7 @@ monocle(Monitor *m)
  	}
  	if (n)
  		snprintf(m->ltsymbol, LENGTH(m->ltsymbol), "[%d]", n);
@@ -158,7 +158,7 @@ index 10d5a5b..07659ea 100644
  }
  
  void
-@@ -1813,7 +1833,7 @@ printstatus(void)
+@@ -1984,7 +2004,7 @@ printstatus(void)
  			if (c->isurgent)
  				urg |= c->tags;
  		}
@@ -167,7 +167,7 @@ index 10d5a5b..07659ea 100644
  			title = client_get_title(c);
  			appid = client_get_appid(c);
  			printf("%s title %s\n", m->wlr_output->name, title ? title : broken);
-@@ -2129,7 +2149,7 @@ setmon(Client *c, Monitor *m, uint32_t newtags)
+@@ -2305,7 +2325,7 @@ setmon(Client *c, Monitor *m, uint32_t newtags)
  		setfullscreen(c, c->isfullscreen); /* This will call arrange(c->mon) */
  		setfloating(c, c->isfloating);
  	}
@@ -176,7 +176,7 @@ index 10d5a5b..07659ea 100644
  }
  
  void
-@@ -2431,12 +2451,12 @@ startdrag(struct wl_listener *listener, void *data)
+@@ -2568,12 +2588,12 @@ startdrag(struct wl_listener *listener, void *data)
  void
  tag(const Arg *arg)
  {
@@ -191,7 +191,7 @@ index 10d5a5b..07659ea 100644
  	arrange(selmon);
  	printstatus();
  }
-@@ -2444,7 +2464,7 @@ tag(const Arg *arg)
+@@ -2581,7 +2601,7 @@ tag(const Arg *arg)
  void
  tagmon(const Arg *arg)
  {
@@ -200,7 +200,7 @@ index 10d5a5b..07659ea 100644
  	if (sel)
  		setmon(sel, dirtomon(arg->i), 0);
  }
-@@ -2485,7 +2505,7 @@ tile(Monitor *m)
+@@ -2623,7 +2643,7 @@ tile(Monitor *m)
  void
  togglefloating(const Arg *arg)
  {
@@ -209,7 +209,7 @@ index 10d5a5b..07659ea 100644
  	/* return if fullscreen */
  	if (sel && !sel->isfullscreen)
  		setfloating(sel, !sel->isfloating);
-@@ -2494,7 +2514,7 @@ togglefloating(const Arg *arg)
+@@ -2632,7 +2652,7 @@ togglefloating(const Arg *arg)
  void
  togglefullscreen(const Arg *arg)
  {
@@ -218,7 +218,7 @@ index 10d5a5b..07659ea 100644
  	if (sel)
  		setfullscreen(sel, !sel->isfullscreen);
  }
-@@ -2503,12 +2523,12 @@ void
+@@ -2641,12 +2661,12 @@ void
  toggletag(const Arg *arg)
  {
  	uint32_t newtags;
@@ -233,7 +233,7 @@ index 10d5a5b..07659ea 100644
  	arrange(selmon);
  	printstatus();
  }
-@@ -2521,7 +2541,7 @@ toggleview(const Arg *arg)
+@@ -2659,7 +2679,7 @@ toggleview(const Arg *arg)
  		return;
  
  	selmon->tagset[selmon->seltags] = newtagset;
@@ -242,16 +242,16 @@ index 10d5a5b..07659ea 100644
  	arrange(selmon);
  	printstatus();
  }
-@@ -2545,7 +2565,7 @@ unmaplayersurfacenotify(struct wl_listener *listener, void *data)
+@@ -2683,7 +2703,7 @@ unmaplayersurfacenotify(struct wl_listener *listener, void *data)
  	if (l->layer_surface->output && (l->mon = l->layer_surface->output->data))
  		arrangelayers(l->mon);
  	if (l->layer_surface->surface == seat->keyboard_state.focused_surface)
 -		focusclient(focustop(selmon), 1);
 +		focusclient(focustop(selmon, 0), 1);
- 	motionnotify(0);
+ 	motionnotify(0, NULL, 0, 0, 0, 0);
  }
  
-@@ -2562,7 +2582,7 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2700,7 +2720,7 @@ unmapnotify(struct wl_listener *listener, void *data)
  	if (client_is_unmanaged(c)) {
  		if (c == exclusive_focus) {
  			exclusive_focus = NULL;
@@ -260,7 +260,7 @@ index 10d5a5b..07659ea 100644
  		}
  	} else {
  		wl_list_remove(&c->link);
-@@ -2643,7 +2663,7 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2781,7 +2801,7 @@ updatemons(struct wl_listener *listener, void *data)
  		/* Don't move clients to the left output when plugging monitors */
  		arrange(m);
  		/* make sure fullscreen clients have the right size */
@@ -269,7 +269,7 @@ index 10d5a5b..07659ea 100644
  			resize(c, m->m, 0);
  
  		/* Try to re-set the gamma LUT when updating monitors,
-@@ -2659,7 +2679,7 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2797,7 +2817,7 @@ updatemons(struct wl_listener *listener, void *data)
  			if (!c->mon && client_surface(c)->mapped)
  				setmon(c, selmon, c->tags);
  		}
@@ -278,7 +278,7 @@ index 10d5a5b..07659ea 100644
  		if (selmon->lock_surface) {
  			client_notify_enter(selmon->lock_surface->surface,
  					wlr_seat_get_keyboard(seat));
-@@ -2681,7 +2701,7 @@ void
+@@ -2819,7 +2839,7 @@ void
  updatetitle(struct wl_listener *listener, void *data)
  {
  	Client *c = wl_container_of(listener, c, set_title);
@@ -287,7 +287,7 @@ index 10d5a5b..07659ea 100644
  		printstatus();
  }
  
-@@ -2691,7 +2711,7 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2829,7 +2849,7 @@ urgent(struct wl_listener *listener, void *data)
  	struct wlr_xdg_activation_v1_request_activate_event *event = data;
  	Client *c = NULL;
  	toplevel_from_wlr_surface(event->surface, &c, NULL);
@@ -296,7 +296,7 @@ index 10d5a5b..07659ea 100644
  		return;
  
  	c->isurgent = 1;
-@@ -2709,7 +2729,7 @@ view(const Arg *arg)
+@@ -2847,7 +2867,7 @@ view(const Arg *arg)
  	selmon->seltags ^= 1; /* toggle sel tagset */
  	if (arg->ui & TAGMASK)
  		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
@@ -305,7 +305,7 @@ index 10d5a5b..07659ea 100644
  	arrange(selmon);
  	printstatus();
  }
-@@ -2767,7 +2787,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2918,7 +2938,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  void
  zoom(const Arg *arg)
  {
@@ -314,7 +314,7 @@ index 10d5a5b..07659ea 100644
  
  	if (!sel || !selmon || !selmon->lt[selmon->sellt]->arrange || sel->isfloating)
  		return;
-@@ -2880,7 +2900,7 @@ sethints(struct wl_listener *listener, void *data)
+@@ -3035,7 +3055,7 @@ sethints(struct wl_listener *listener, void *data)
  {
  	Client *c = wl_container_of(listener, c, set_hints);
  	struct wlr_surface *surface = client_surface(c);
@@ -324,5 +324,5 @@ index 10d5a5b..07659ea 100644
  
  	c->isurgent = xcb_icccm_wm_hints_get_urgency(c->surface.xwayland->hints);
 -- 
-2.43.0
+2.45.2
 
