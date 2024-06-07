@@ -1,4 +1,4 @@
-From da92f84aa261051b410a0ffcfc80b4d6c8c7dfae Mon Sep 17 00:00:00 2001
+From a194d37cd31ac780d93fdbf2e3d0ee5ec9c43696 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
  <leohdz172@protonmail.com>
 Date: Sun, 10 Apr 2022 22:38:53 -0500
@@ -14,23 +14,23 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  2 files changed, 18 insertions(+), 2 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index a8ed61d..b219c0d 100644
+index a784eb4f..50b3cae4 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -12,7 +12,7 @@ static const float bordercolor[]           = COLOR(0x444444ff);
  static const float focuscolor[]            = COLOR(0x005577ff);
  static const float urgentcolor[]           = COLOR(0xff0000ff);
- /* To conform the xdg-protocol, set the alpha to zero to restore the old behavior */
--static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 1.0}; /* You can also use glsl colors */
-+static const float fullscreen_bg[]         = {0.1, 0.1, 0.1, 0.0}; /* You can also use glsl colors */
+ /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
+-static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
++static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 0.0f}; /* You can also use glsl colors */
  
  /* tagging - TAGCOUNT must be no greater than 31 */
  #define TAGCOUNT (9)
 diff --git a/dwl.c b/dwl.c
-index 10d5a5b..0b8d03a 100644
+index 6f041a0d..c530a3a0 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -455,7 +455,9 @@ applyrules(Client *c)
+@@ -478,7 +478,9 @@ applyrules(Client *c)
  void
  arrange(Monitor *m)
  {
@@ -38,12 +38,12 @@ index 10d5a5b..0b8d03a 100644
 +	LayerSurface *l;
 +	Client *c, *sel = focustop(selmon);
 +	int i;
- 	wl_list_for_each(c, &clients, link) {
- 		if (c->mon == m) {
- 			wlr_scene_node_set_enabled(&c->scene->node, VISIBLEON(c, m));
-@@ -468,6 +470,20 @@ arrange(Monitor *m)
  
- 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, LENGTH(m->ltsymbol));
+ 	if (!m->wlr_output->enabled)
+ 		return;
+@@ -509,6 +511,20 @@ arrange(Monitor *m)
+ 								: c->scene->node.parent);
+ 	}
  
 +	if (sel && sel->isfullscreen && VISIBLEON(sel, m)) {
 +		for (i = 3; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--)
@@ -61,7 +61,7 @@ index 10d5a5b..0b8d03a 100644
 +
  	if (m->lt[m->sellt]->arrange)
  		m->lt[m->sellt]->arrange(m);
- 	motionnotify(0);
+ 	motionnotify(0, NULL, 0, 0, 0, 0);
 -- 
-2.43.0
+2.45.2
 

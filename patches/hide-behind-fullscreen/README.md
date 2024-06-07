@@ -3,7 +3,7 @@ Hide all clients (and layer surfaces) behind the current client if it is fullscr
 
 ### Download
 - [git branch](https://codeberg.org/sevz/dwl/src/branch/hide-behind-fullscreen)
-- [2023-11-25](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/hide-behind-fullscreen/hide-behind-fullscreen.patch)
+- [2024-06-07](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/hide-behind-fullscreen/hide-behind-fullscreen.patch)
 
 ### Authors
 - [sevz](https://codeberg.org/sevz)
