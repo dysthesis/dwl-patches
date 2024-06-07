@@ -1,4 +1,4 @@
-From 4693a27d3c435883743f60dbe3c0c523bdc1a0cc Mon Sep 17 00:00:00 2001
+From 7df91a900570684ee6ac31a95296cd60a32b00b6 Mon Sep 17 00:00:00 2001
 From: Sevz17 <leohdz172@outlook.com>
 Date: Fri, 25 Jun 2021 19:50:56 -0500
 Subject: [PATCH] show master area to the right
@@ -12,10 +12,10 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 10d5a5b..5ae2605 100644
+index 6f041a0d..14b2ae3c 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -2470,11 +2470,12 @@ tile(Monitor *m)
+@@ -2608,11 +2608,12 @@ tile(Monitor *m)
  		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
  			continue;
  		if (i < m->nmaster) {
@@ -31,5 +31,5 @@ index 10d5a5b..5ae2605 100644
  			ty += c->geom.height;
  		}
 -- 
-2.43.0
+2.45.2
 
