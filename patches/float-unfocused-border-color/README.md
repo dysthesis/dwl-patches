@@ -1,5 +1,5 @@
 ### Description
-A revive of <https://codeberg.org/dwl/dwl-patches/src/branch/main/_STALE_PATCHES/floatBorderColor.md>
+A revive of the floatBorderColor patch.
 
 This patch allows you to set a color for floating windows when they are unfocused.
 
