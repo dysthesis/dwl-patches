@@ -3,7 +3,7 @@ The borders of a window aren't drawn when the window is the only tiling window i
 
 ### Download
 - [git branch](https://codeberg.org/sevz/dwl/src/branch/smartborders)
-- [2024-03-31](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/smartborders/smartborders.patch)
+- [2024-06-07](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/smartborders/smartborders.patch)
 
 ### Authors
 - [sevz](https://codeberg.org/sevz)
