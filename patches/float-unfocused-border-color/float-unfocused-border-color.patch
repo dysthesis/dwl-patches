@@ -1,7 +1,7 @@
 From 591c031a4d8e62acfef4ef41816c1fbbb8b1473a Mon Sep 17 00:00:00 2001
 From: yuki <yukiat@proton.me>
 Date: Fri, 7 Jun 2024 11:44:37 +0800
-Subject: [PATCH 1038/1038] Added float-unfocused-border-color patch.
+Subject: [PATCH] Added float-unfocused-border-color patch.
 
 ---
  config.def.h |  1 +
@@ -56,3 +56,5 @@ index 6f041a0..777c0e1 100644
  	arrange(c->mon);
  	printstatus();
  }
+-- 
+2.45.2
