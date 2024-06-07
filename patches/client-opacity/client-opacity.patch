@@ -1,4 +1,4 @@
-From 38618730e4e4c87e005ed5aa225a53f24ad3417f Mon Sep 17 00:00:00 2001
+From 652fd0f8c03724fc7addaa2822913790cbbe89f0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
  <leohdz172@proton.me>
 Date: Tue, 25 Jul 2023 12:48:22 -0600
@@ -15,7 +15,7 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  2 files changed, 44 insertions(+), 3 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 8847e58f..d49c69b0 100644
+index a784eb4f..2e3cdfbb 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -13,6 +13,7 @@ static const float focuscolor[]            = COLOR(0x005577ff);
@@ -40,7 +40,7 @@ index 8847e58f..d49c69b0 100644
  };
  
  /* layout(s) */
-@@ -128,6 +129,8 @@ static const Key keys[] = {
+@@ -130,6 +131,8 @@ static const Key keys[] = {
  	{ MODKEY,                    XKB_KEY_d,          incnmaster,     {.i = -1} },
  	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },
  	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05f} },
@@ -50,7 +50,7 @@ index 8847e58f..d49c69b0 100644
  	{ MODKEY,                    XKB_KEY_Tab,        view,           {0} },
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_C,          killclient,     {0} },
 diff --git a/dwl.c b/dwl.c
-index 39ce68c0..1bd455ec 100644
+index 6f041a0d..83c3cd23 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -138,6 +138,7 @@ typedef struct {
@@ -61,7 +61,7 @@ index 39ce68c0..1bd455ec 100644
  	uint32_t resize; /* configure serial of a pending resize */
  } Client;
  
-@@ -227,6 +228,7 @@ typedef struct {
+@@ -228,6 +229,7 @@ typedef struct {
  	const char *title;
  	uint32_t tags;
  	int isfloating;
@@ -69,7 +69,7 @@ index 39ce68c0..1bd455ec 100644
  	int monitor;
  } Rule;
  
-@@ -314,6 +316,7 @@ static void requeststartdrag(struct wl_listener *listener, void *data);
+@@ -317,6 +319,7 @@ static void requeststartdrag(struct wl_listener *listener, void *data);
  static void requestmonstate(struct wl_listener *listener, void *data);
  static void resize(Client *c, struct wlr_box geo, int interact);
  static void run(char *startup_cmd);
@@ -77,7 +77,7 @@ index 39ce68c0..1bd455ec 100644
  static void setcursor(struct wl_listener *listener, void *data);
  static void setcursorshape(struct wl_listener *listener, void *data);
  static void setfloating(Client *c, int floating);
-@@ -322,6 +325,7 @@ static void setgamma(struct wl_listener *listener, void *data);
+@@ -325,6 +328,7 @@ static void setgamma(struct wl_listener *listener, void *data);
  static void setlayout(const Arg *arg);
  static void setmfact(const Arg *arg);
  static void setmon(Client *c, Monitor *m, uint32_t newtags);
@@ -85,7 +85,7 @@ index 39ce68c0..1bd455ec 100644
  static void setpsel(struct wl_listener *listener, void *data);
  static void setsel(struct wl_listener *listener, void *data);
  static void setup(void);
-@@ -462,6 +466,7 @@ applyrules(Client *c)
+@@ -464,6 +468,7 @@ applyrules(Client *c)
  		if ((!r->title || strstr(title, r->title))
  				&& (!r->id || strstr(appid, r->id))) {
  			c->isfloating = r->isfloating;
@@ -93,7 +93,7 @@ index 39ce68c0..1bd455ec 100644
  			newtags |= r->tags;
  			i = 0;
  			wl_list_for_each(m, &mons, link) {
-@@ -470,6 +475,7 @@ applyrules(Client *c)
+@@ -472,6 +477,7 @@ applyrules(Client *c)
  			}
  		}
  	}
@@ -101,7 +101,7 @@ index 39ce68c0..1bd455ec 100644
  	setmon(c, mon, newtags);
  }
  
-@@ -759,6 +765,9 @@ commitnotify(struct wl_listener *listener, void *data)
+@@ -773,6 +779,9 @@ commitnotify(struct wl_listener *listener, void *data)
  	if (client_surface(c)->mapped && c->mon)
  		resize(c, c->geom, (c->isfloating && !c->isfullscreen));
  
@@ -111,7 +111,7 @@ index 39ce68c0..1bd455ec 100644
  	/* mark a pending resize as completed */
  	if (c->resize && c->resize <= c->surface.xdg->current.configure_serial)
  		c->resize = 0;
-@@ -973,6 +982,7 @@ createnotify(struct wl_listener *listener, void *data)
+@@ -1024,6 +1033,7 @@ createnotify(struct wl_listener *listener, void *data)
  	c = xdg_surface->data = ecalloc(1, sizeof(*c));
  	c->surface.xdg = xdg_surface;
  	c->bw = borderpx;
@@ -119,7 +119,7 @@ index 39ce68c0..1bd455ec 100644
  
  	wlr_xdg_toplevel_set_wm_capabilities(xdg_surface->toplevel,
  			WLR_XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN);
-@@ -2110,6 +2120,15 @@ run(char *startup_cmd)
+@@ -2173,6 +2183,15 @@ run(char *startup_cmd)
  	wl_display_run(dpy);
  }
  
@@ -135,7 +135,7 @@ index 39ce68c0..1bd455ec 100644
  void
  setcursor(struct wl_listener *listener, void *data)
  {
-@@ -2177,6 +2196,7 @@ setfullscreen(Client *c, int fullscreen)
+@@ -2241,6 +2260,7 @@ setfullscreen(Client *c, int fullscreen)
  		 * client positions are set by the user and cannot be recalculated */
  		resize(c, c->prev, 0);
  	}
@@ -143,7 +143,7 @@ index 39ce68c0..1bd455ec 100644
  	arrange(c->mon);
  	printstatus();
  }
-@@ -2244,6 +2264,23 @@ setmon(Client *c, Monitor *m, uint32_t newtags)
+@@ -2308,6 +2328,23 @@ setmon(Client *c, Monitor *m, uint32_t newtags)
  	focusclient(focustop(selmon), 1);
  }
  
@@ -167,7 +167,7 @@ index 39ce68c0..1bd455ec 100644
  void
  setpsel(struct wl_listener *listener, void *data)
  {
-@@ -2978,6 +3015,7 @@ createnotifyx11(struct wl_listener *listener, void *data)
+@@ -2997,6 +3034,7 @@ createnotifyx11(struct wl_listener *listener, void *data)
  	c->surface.xwayland = xsurface;
  	c->type = X11;
  	c->bw = borderpx;
@@ -176,5 +176,5 @@ index 39ce68c0..1bd455ec 100644
  	/* Listen to the various events it can emit */
  	LISTEN(&xsurface->events.associate, &c->associate, associatex11);
 -- 
-2.44.0
+2.45.2
 
