@@ -2,8 +2,10 @@
 * A general [dwl wiki](https://codeberg.org/dwl/dwl/wiki) is available at the main [dwl](https://codeberg.org/dwl/dwl) page.
 * This repository is exclusively for dwl PATCHES.
 
-## STALE Patches
-Many patches previously in regular use do not cleanly apply to the current code base. Following the migration to Codeberg, these stale patch descriptions and details are being stored for the time being at [_STALE_PATCHES].
+## _STALE_PATCHES
+Many patches previously in regular use do not cleanly apply to the current code base. Following the migration to Codeberg, these stale patch descriptions were relocated to [_STALE_PATCHES].
+
+Additionally, patches that have been deprecated by their author(s)/maintainer(s) may be found in _STALE_PATCHES.
 
 If you are an original author of one of these or you have the inclination to revive one of these, please follow the same procedures outlined below for contributing new patches.
 
@@ -56,8 +58,18 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 - If the existing patch is already being maintained by another author, do not make modifications to it without permission.
 - Create an issue at [issues] @mentioning the current maintainer
 - If you receive no reply for seven days, you may adopt the patch. If you are adopting the patch, you need to maintain a `dwl` branch in your Codeberg repository.
-- Modify the `README.md` with new links for your raw patch and for your git branch. **LEAVE PREVIOUS AUTHOR(S)' NICKS/LINKS INTACT UNDER THE "Authors" HEADING!** Add your own nick/link to the top of the "Authors" list.
+- Modify the `README.md` with new links for your raw patch and for your git branch.
+    - **LEAVE PREVIOUS AUTHOR(S)' NICKS/LINKS INTACT UNDER THE "Authors" HEADING!**
+    - Add your own nick/link to the top of the "Authors" list.
 
+## Deprecating Existing Patches
+- Patches will not be removed from this archive but may instead be deprecated if the author(s)/maintainer(s) of a patch so desire.
+- Please do not open issues or contact maintainers to request deprecation of a patch.
+- Deprecation of a patch will only occur if *all* authors or current maintainers of the patch agree to the decision to deprecate.
+- In such a circumstance the author(s)/maintainer(s):
+    - Will create a commit moving the patch to the `_STALE_PATCHES` directory
+    - May explain in the associated `README.md` any relevant details of the decision to deprecate the patch.
+- This process allows current or future users of the patch the option to adopt, modify, or integrate stale/historical code or portions thereof.
 
 
 [dwl-patches]: https://codeberg.org/dwl/dwl-patches
