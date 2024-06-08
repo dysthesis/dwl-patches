@@ -5,7 +5,7 @@ Tip to find the names: Grep for `device_name` and add a line after it to print t
 
 ### Download
 - [git branch](https://codeberg.org/nullsystem/dwl/src/branch/main_perinputconfig)
-- [2024-03-31](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/perinputconfig/perinputconfig.patch)
+- [2024-06-08](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/perinputconfig/perinputconfig.patch)
 - [v0.5](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/perinputconfig/perinputconfig-v0.5.patch)
 
 ### Authors
