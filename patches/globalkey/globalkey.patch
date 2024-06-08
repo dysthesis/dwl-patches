@@ -1,33 +1,34 @@
-From 9207aee6d877896485cb41b587896b8d6917bdb7 Mon Sep 17 00:00:00 2001
+From 9c8632f65f0145b5d6bcb4df7830a12eea058838 Mon Sep 17 00:00:00 2001
 From: korei999 <ju7t1xe@gmail.com>
-Date: Mon, 3 Jun 2024 20:39:52 +0300
-Subject: [PATCH] add globalkey
+Date: Sat, 8 Jun 2024 20:08:22 +0300
+Subject: [PATCH] implement globalkey patch
 
 ---
- config.def.h |  7 ++++++
- dwl.c        | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 68 insertions(+), 2 deletions(-)
+ config.def.h |  8 ++++++++
+ dwl.c        | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
 diff --git a/config.def.h b/config.def.h
-index a784eb4..58da23e 100644
+index a784eb4..59c5267 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -119,6 +119,13 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
+@@ -119,6 +119,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
  static const char *termcmd[] = { "foot", NULL };
  static const char *menucmd[] = { "wmenu-run", NULL };
  
-+#define ADDPASSRULE(S, M, K) {.appid = S, .len = LENGTH(S), .mod = M, .key = K}
++#define ADDPASSRULE(S, M, K) {.appid = S, .len = LENGTH(S), .key = K}
 +static const PassKeypressRule pass_rules[] = {
 +	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_Home),
-+	ADDPASSRULE("havoc",                 0,      XKB_KEY_e),
-+	/* each instance of havoc will receive input 'e' for example, regardless of which client is focused */
++	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_End),
++	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_F12),
++	ADDPASSRULE("discord", 0, XKB_KEY_n),
 +};
 +
  static const Key keys[] = {
  	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
  	/* modifier                  key                 function        argument */
 diff --git a/dwl.c b/dwl.c
-index 356b913..021f78c 100644
+index 6f041a0..9625c10 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -218,6 +218,13 @@ typedef struct {
@@ -48,11 +49,11 @@ index 356b913..021f78c 100644
  static void inputdevice(struct wl_listener *listener, void *data);
  static int keybinding(uint32_t mods, xkb_keysym_t sym);
  static void keypress(struct wl_listener *listener, void *data);
-+static void keypresspass(struct wlr_surface *last_surface, struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t keysym);
++static void keypressglobal(struct wlr_surface *last_surface, struct wlr_keyboard *keyboard, struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t keysym);
  static void keypressmod(struct wl_listener *listener, void *data);
  static int keyrepeat(void *data);
  static void killclient(const Arg *arg);
-@@ -1502,6 +1510,8 @@ keypress(struct wl_listener *listener, void *data)
+@@ -1516,6 +1524,8 @@ keypress(struct wl_listener *listener, void *data)
  	/* This event is raised when a key is pressed or released. */
  	KeyboardGroup *group = wl_container_of(listener, group, key);
  	struct wlr_keyboard_key_event *event = data;
@@ -61,66 +62,58 @@ index 356b913..021f78c 100644
  
  	/* Translate libinput keycode -> xkbcommon */
  	uint32_t keycode = event->keycode + 8;
-@@ -1533,15 +1543,64 @@ keypress(struct wl_listener *listener, void *data)
- 		wl_event_source_timer_update(group->key_repeat_source, 0);
- 	}
- 
--	if (handled)
-+	if (handled) {
-+		wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
+@@ -1550,12 +1560,58 @@ keypress(struct wl_listener *listener, void *data)
+ 	if (handled)
  		return;
-+	}
-+
+ 
++	/* passed keys won't be repeated */
 +	if (last_surface) {
 +		xdg_surface = wlr_xdg_surface_try_from_wlr_surface(last_surface);
-+		/* don't pass when popup is focused */
-+		/* this is better than having popups (like fuzzel or wmenu) closing while typing in a passed keybind */
++		/* don't pass when popup is focused
++		 * this is better than having popups (like fuzzel or wmenu) closing while typing in a passed keybind */
 +		if (xdg_surface && xdg_surface->role != WLR_XDG_SURFACE_ROLE_POPUP) {
-+			keypresspass(last_surface, event, mods, syms[0]);
++			keypressglobal(last_surface, &group->wlr_group->keyboard, event, mods, syms[0]);
 +		}
 +	} else  {
 +		/* if no surface pass anyway */
-+		keypresspass(last_surface, event, mods, syms[0]);
++		keypressglobal(last_surface, &group->wlr_group->keyboard, event, mods, syms[0]);
 +	}
- 
--	wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
++
+ 	wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
  	/* Pass unhandled keycodes along to the client. */
  	wlr_seat_keyboard_notify_key(seat, event->time_msec,
  			event->keycode, event->state);
  }
  
 +void
-+keypresspass(struct wlr_surface *last_surface, struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t keysym)
++keypressglobal(struct wlr_surface *last_surface, struct wlr_keyboard *keyboard, struct wlr_keyboard_key_event *event, uint32_t mods, xkb_keysym_t keysym)
 +{
-+	Client *c = NULL, *savedc = focustop(selmon);
-+	struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
++	Client *c = NULL, *lastc = focustop(selmon);
 +	uint32_t keycodes[32] = {0};
 +	int reset = false;
++	const char *appid = NULL;
 +
-+	wl_list_for_each(c, &clients, link) {
-+		if (c && c != savedc) {
-+			const char* appid = client_get_appid(c);
-+			if (appid) {
-+				for (size_t r = 0; r < LENGTH(pass_rules); r++) {
-+					if (strncmp(appid, pass_rules[r].appid, pass_rules[r].len) == 0) {
-+						uint32_t rcode = xkb_keysym_to_upper(pass_rules[r].key);
-+						uint32_t pcode = xkb_keysym_to_upper(keysym);
-+						/* match keysym only ignoring mods (case insensitive)
-+						 * this fixes the case when we can release mod before the other key,
-+						 * such that the client might not receive released state for than button
-+						 * (or something like that) and stuck with the pressed state */
-+						if (rcode == pcode) {
-+							reset = true;
-+							/* mods are passed to the surfaces anyway */
-+							wlr_seat_keyboard_enter(seat, client_surface(c), keycodes, 0, &keyboard->modifiers);
-+							wlr_seat_keyboard_notify_key(seat, event->time_msec, event->keycode, event->state);
-+						}
++	for (size_t r = 0; r < LENGTH(pass_rules); r++) {
++		uint32_t rcode = xkb_keysym_to_upper(pass_rules[r].key);
++		uint32_t pcode = xkb_keysym_to_upper(keysym);
++		/* match key only (case insensitive) ignoring mods */
++		if (rcode == pcode) {
++			wl_list_for_each(c, &clients, link) {
++				if (c && c != lastc) {
++					appid = client_get_appid(c);
++					if (appid && strncmp(appid, pass_rules[r].appid, pass_rules[r].len) == 0) {
++						reset = true;
++						wlr_seat_keyboard_enter(seat, client_surface(c), keycodes, 0, &keyboard->modifiers);
++						wlr_seat_keyboard_send_key(seat, event->time_msec, event->keycode, event->state);
++
++						goto done;
 +					}
 +				}
 +			}
 +		}
 +	}
 +
++done:
 +	if (reset)
 +		wlr_seat_keyboard_enter(seat, last_surface, keycodes, 0, &keyboard->modifiers);
 +}

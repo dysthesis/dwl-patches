@@ -20,6 +20,6 @@ This is done so these menus don't get closed after hitting some of the global ke
 
 ### Download
 - [git branch](https://codeberg.org/korei999/dwl/src/branch/globalkey)
-- [2024-06-03](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/globalkey/globalkey.patch)
+- [2024-06-08](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/globalkey/globalkey.patch)
 ### Authors
 - [korei999](https://codeberg.org/korei999)
