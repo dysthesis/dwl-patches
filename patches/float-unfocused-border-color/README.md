@@ -9,4 +9,4 @@ This patch allows you to set a color for floating windows when they are unfocuse
 
 ### Authors
 - [yuki](https://codeberg.org/yuki-was-taken)
-- [Palanix (Original Author)](https://github.com/PalanixYT)
+- [Palanix (Original Author)](https://codeberg.org/Palanix)
