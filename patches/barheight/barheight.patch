@@ -1,7 +1,7 @@
-From e70e53575b313ce1d63052795ac5722ee7e92d8a Mon Sep 17 00:00:00 2001
+From 0b471d8b8adbd79802beb035270f68c92465284c Mon Sep 17 00:00:00 2001
 From: oak <oak@petrifiedoak.com>
-Date: Thu, 16 May 2024 13:00:18 +0200
-Subject: [PATCH] Implement barheight patch
+Date: Mon, 10 Jun 2024 21:25:56 +0200
+Subject: [PATCH] Implement barheight
 
 ---
  config.def.h | 1 +
@@ -9,7 +9,7 @@ Subject: [PATCH] Implement barheight patch
  2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/config.def.h b/config.def.h
-index b09d85b..6d467c3 100644
+index c4ab801..869cb7a 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -17,6 +17,7 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
@@ -18,21 +18,21 @@ index b09d85b..6d467c3 100644
  static const int topbar         = 1; /* 0 means bottom bar */
 +static const int user_bh        = 0; /* 0 means that dwl will calculate bar height, >= 1 means dwl will use user_bh as bar height */
  static const char *fonts[]      = {"monospace:size=10"};
- static const char *fontattrs    = "dpi=96";
  static pixman_color_t normbarfg = { 0xbbbb, 0xbbbb, 0xbbbb, 0xffff };
+ static pixman_color_t normbarbg = { 0x2222, 0x2222, 0x2222, 0xffff };
 diff --git a/dwl.c b/dwl.c
-index 2145e55..770c94f 100644
+index 61c5727..49eded9 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -2664,7 +2664,7 @@ setup(void)
- 		die("Could not load font");
+@@ -3037,7 +3037,7 @@ updatebar(Monitor *m)
  
- 	lrpad = font->height;
--	bh = font->height + 2;
-+	bh = user_bh ? user_bh : font->height + 2;
+ 	m->b.scale = m->wlr_output->scale;
+ 	m->lrpad = m->font->height;
+-	m->b.height = m->font->height + 2;
++	m->b.height = user_bh ? user_bh : m->font->height + 2;
+ 	m->b.real_height = (int)((float)m->b.height / m->wlr_output->scale);
+ }
  
- 	status_event_source = wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
- 		STDIN_FILENO, WL_EVENT_READABLE, status_in, NULL);
 -- 
 2.44.0
 
