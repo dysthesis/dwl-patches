@@ -14,7 +14,7 @@ slstatus -s | dwl
 
 ### Download
 - [git branch](https://codeberg.org/sewn/dwl/src/branch/bar)
-- [2024-05-28](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/bar/bar.patch)
+- [2024-06-10](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/bar/bar.patch)
 
 Below is a preview of the patch.
 
