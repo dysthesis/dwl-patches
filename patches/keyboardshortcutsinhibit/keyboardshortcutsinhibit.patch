@@ -1,6 +1,6 @@
-From 78cc7f78ca70144fa29361f22082e13a1aebc12c Mon Sep 17 00:00:00 2001
+From ac1fa09172a401427cabbda045688903bdd3cbe7 Mon Sep 17 00:00:00 2001
 From: Rutherther <rutherther@proton.me>
-Date: Thu, 9 May 2024 19:12:25 +0200
+Date: Wed, 12 Jun 2024 20:05:40 +0200
 Subject: [PATCH] feat: apply keyboard shortcuts inhibit patch
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH] feat: apply keyboard shortcuts inhibit patch
  1 file changed, 21 insertions(+), 1 deletion(-)
 
 diff --git a/dwl.c b/dwl.c
-index bf763df..496d51b 100644
+index 6f041a0..8cab9e0 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -29,6 +29,7 @@
@@ -19,7 +19,7 @@ index bf763df..496d51b 100644
  #include <wlr/types/wlr_layer_shell_v1.h>
  #include <wlr/types/wlr_linux_dmabuf_v1.h>
  #include <wlr/types/wlr_output.h>
-@@ -265,6 +266,7 @@ static void createnotify(struct wl_listener *listener, void *data);
+@@ -267,6 +268,7 @@ static void createnotify(struct wl_listener *listener, void *data);
  static void createpointer(struct wlr_pointer *pointer);
  static void createpointerconstraint(struct wl_listener *listener, void *data);
  static void cursorconstrain(struct wlr_pointer_constraint_v1 *constraint);
@@ -27,15 +27,15 @@ index bf763df..496d51b 100644
  static void cursorframe(struct wl_listener *listener, void *data);
  static void cursorwarptohint(void);
  static void destroydecoration(struct wl_listener *listener, void *data);
-@@ -277,6 +279,7 @@ static void destroynotify(struct wl_listener *listener, void *data);
- static void destroypointerconstraint(struct wl_listener *listener, void *data);
+@@ -280,6 +282,7 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
  static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroysessionmgr(struct wl_listener *listener, void *data);
+ static void destroykeyboardgroup(struct wl_listener *listener, void *data);
 +static void destroyshortcutsinhibitmgr(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
-@@ -372,6 +375,7 @@ static struct wl_list clients; /* tiling order */
+@@ -375,6 +378,7 @@ static struct wl_list clients; /* tiling order */
  static struct wl_list fstack;  /* focus order */
  static struct wlr_idle_notifier_v1 *idle_notifier;
  static struct wlr_idle_inhibit_manager_v1 *idle_inhibit_mgr;
@@ -43,15 +43,15 @@ index bf763df..496d51b 100644
  static struct wlr_layer_shell_v1 *layer_shell;
  static struct wlr_output_manager_v1 *output_mgr;
  static struct wlr_gamma_control_manager_v1 *gamma_control_mgr;
-@@ -391,6 +395,7 @@ static struct wlr_session_lock_manager_v1 *session_lock_mgr;
+@@ -394,6 +398,7 @@ static struct wlr_session_lock_manager_v1 *session_lock_mgr;
  static struct wlr_scene_rect *locked_bg;
  static struct wlr_session_lock_v1 *cur_lock;
  static struct wl_listener lock_listener = {.notify = locksession};
 +static struct wl_listener new_shortcuts_inhibitor = {.notify = createshortcutsinhibitor};
  
  static struct wlr_seat *seat;
- static KeyboardGroup kb_group = {0};
-@@ -1032,6 +1037,10 @@ createpointer(struct wlr_pointer *pointer)
+ static KeyboardGroup *kb_group;
+@@ -1083,6 +1088,10 @@ createpointer(struct wlr_pointer *pointer)
  	wlr_cursor_attach_input_device(cursor, &pointer->base);
  }
  
@@ -62,8 +62,8 @@ index bf763df..496d51b 100644
  void
  createpointerconstraint(struct wl_listener *listener, void *data)
  {
-@@ -1217,6 +1226,11 @@ destroysessionmgr(struct wl_listener *listener, void *data)
- 	wl_list_remove(&listener->link);
+@@ -1280,6 +1289,11 @@ destroykeyboardgroup(struct wl_listener *listener, void *data)
+ 	free(group);
  }
  
 +void destroyshortcutsinhibitmgr(struct wl_listener *listener, void *data) {
@@ -74,7 +74,7 @@ index bf763df..496d51b 100644
  Monitor *
  dirtomon(enum wlr_direction dir)
  {
-@@ -1468,7 +1482,9 @@ keypress(struct wl_listener *listener, void *data)
+@@ -1531,7 +1545,9 @@ keypress(struct wl_listener *listener, void *data)
  
  	/* On _press_ if there is no active screen locker,
  	 * attempt to process a compositor keybinding. */
@@ -85,7 +85,7 @@ index bf763df..496d51b 100644
  		for (i = 0; i < nsyms; i++)
  			handled = keybinding(mods, syms[i]) || handled;
  	}
-@@ -2389,6 +2405,10 @@ setup(void)
+@@ -2450,6 +2466,10 @@ setup(void)
  			(float [4]){0.1f, 0.1f, 0.1f, 1.0f});
  	wlr_scene_node_set_enabled(&locked_bg->node, 0);
  
@@ -97,5 +97,5 @@ index bf763df..496d51b 100644
  	wlr_server_decoration_manager_set_default_mode(
  			wlr_server_decoration_manager_create(dpy),
 -- 
-2.44.0
+2.44.1
 
