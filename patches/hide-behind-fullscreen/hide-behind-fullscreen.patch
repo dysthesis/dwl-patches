@@ -1,6 +1,6 @@
-From a194d37cd31ac780d93fdbf2e3d0ee5ec9c43696 Mon Sep 17 00:00:00 2001
+From 611144be3f78e66c7fbb7b3e84801a661986e424 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
- <leohdz172@protonmail.com>
+ <leohdz172@proton.me>
 Date: Sun, 10 Apr 2022 22:38:53 -0500
 Subject: [PATCH] hide-behind-fullscreen
 MIME-Version: 1.0
@@ -10,8 +10,8 @@ Content-Transfer-Encoding: 8bit
 Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
 ---
  config.def.h |  2 +-
- dwl.c        | 18 +++++++++++++++++-
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ dwl.c        | 24 +++++++++++++++++++++++-
+ 2 files changed, 24 insertions(+), 2 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index a784eb4f..50b3cae4 100644
@@ -27,7 +27,7 @@ index a784eb4f..50b3cae4 100644
  /* tagging - TAGCOUNT must be no greater than 31 */
  #define TAGCOUNT (9)
 diff --git a/dwl.c b/dwl.c
-index 6f041a0d..c530a3a0 100644
+index 6f041a0d..156a156e 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -478,7 +478,9 @@ applyrules(Client *c)
@@ -36,28 +36,34 @@ index 6f041a0d..c530a3a0 100644
  {
 -	Client *c;
 +	LayerSurface *l;
-+	Client *c, *sel = focustop(selmon);
++	Client *c, *sel = focustop(m);
 +	int i;
  
  	if (!m->wlr_output->enabled)
  		return;
-@@ -509,6 +511,20 @@ arrange(Monitor *m)
+@@ -509,6 +511,26 @@ arrange(Monitor *m)
  								: c->scene->node.parent);
  	}
  
 +	if (sel && sel->isfullscreen && VISIBLEON(sel, m)) {
-+		for (i = 3; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--)
++		for (i = 2; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--) {
 +			wl_list_for_each(l, &sel->mon->layers[i], link)
 +				wlr_scene_node_set_enabled(&l->scene->node, 0);
++		}
 +
-+		wl_list_for_each(c, &clients, link)
++		wl_list_for_each(c, &clients, link) {
++			if (c->mon != m)
++				continue;
 +			wlr_scene_node_set_enabled(&c->scene->node, (sel->isfullscreen && c == sel)
 +					|| !sel->isfullscreen);
++		}
 +	}
-+	if (!sel || (!sel->isfullscreen && VISIBLEON(sel, m)))
-+		for (i = 3; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--)
++	if (!sel || (!sel->isfullscreen && VISIBLEON(sel, m))) {
++		for (i = 2; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--) {
 +			wl_list_for_each(l, &m->layers[i], link)
 +				wlr_scene_node_set_enabled(&l->scene->node, 1);
++		}
++	}
 +
  	if (m->lt[m->sellt]->arrange)
  		m->lt[m->sellt]->arrange(m);
