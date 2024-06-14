@@ -24,12 +24,12 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 2. Create a branch in your Codeberg `dwl` repository for the patch you are generating and maintaining.
 
 ## Contributing Patches to `dwl-patches`
-1. If you do not have it already, add the remote for the main dwl repository in your local copy and fetch it:  
+1. If you do not have it already, add the remote for the main dwl repository in your local copy and fetch it:
     `git remote add --fetch upstream https://codeberg.org/dwl/dwl`
-2. In your local repository of dwl, create a .patch file  
+2. In your local repository of dwl, create a .patch file
     `git format-patch upstream/main...<branch-name> --stdout > PATCHNAME.patch`
 3. Fork [https://codeberg.org/dwl/dwl-patches][dwl-patches]
-4. Configure your repository  
+4. Configure your repository
     `git config --local pull.rebase true`
 5. In your local copy, add a directory called `patches/PATCHNAME`. Place the `PATCHNAME.patch` you created in step three into the `patches/PATCHNAME` directory.
 6. Use the Codeberg web interface to send a pull request to [dwl-patches] (NOT to [dwl]) (Codeberg nicely will generate a URL for you)
@@ -44,7 +44,7 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
                                                USE THE ^raw^ PATCH LINK HERE
     ### Authors
     - [YOUR_NICK](https://codeberg.org/USERNAME)
-    ``` 
+    ```
     You may choose to include screenshots (hosted in your patch's subdirectory) in your `README.md`. The process is described [here](https://docs.codeberg.org/markdown/using-images/).
 
 8. WHEN YOUR PULL REQUEST IS APPROVED, your Codeberg account will also be granted commit access to [dwl-patches]. Once you have write access, you can make direct modifications/upates to your patches instead of pull requests.
@@ -54,7 +54,6 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 - Create an issue at [issues] @mentioning the current maintainer
 - If you receive no reply for seven days, you may adopt the patch. If you are adopting the patch, you need to maintain a `dwl` branch in your Codeberg repository.
 - Modify the `README.md` with new links for your raw patch and for your git branch. **LEAVE PREVIOUS AUTHOR(S)' NICKS/LINKS INTACT UNDER THE "Authors" HEADING!** Add your own nick/link to the top of the "Authors" list.
-- This line has been added for testing purposes only and should not remain present.
 
 
 
