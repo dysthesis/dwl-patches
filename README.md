@@ -54,6 +54,7 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 - Create an issue at [issues] @mentioning the current maintainer
 - If you receive no reply for seven days, you may adopt the patch. If you are adopting the patch, you need to maintain a `dwl` branch in your Codeberg repository.
 - Modify the `README.md` with new links for your raw patch and for your git branch. **LEAVE PREVIOUS AUTHOR(S)' NICKS/LINKS INTACT UNDER THE "Authors" HEADING!** Add your own nick/link to the top of the "Authors" list.
+- This line has been added for testing purposes only and should not remain present.
 
 
 
