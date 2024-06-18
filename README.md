@@ -42,8 +42,11 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
     - [git branch](https://codeberg.org/USERNAME/dwl/src/branch/PATCHNAME)
     - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
                                                USE THE ^raw^ PATCH LINK HERE
-    ### Authors
+    ### Authors [Codeberg nick is mandatory; other contact methods optional]
     - [YOUR_NICK](https://codeberg.org/USERNAME)
+      your_email@if_you_wish_to.share.it
+      your_irc_nick at [Libera IRC dwl channel](https://web.libera.chat/?channels=#dwl)
+      your_discord_handle at [dwl Discord](https://discord.gg/jJxZnrGPWN)
     ```
     You may choose to include screenshots (hosted in your patch's subdirectory) in your `README.md`. The process is described [here](https://docs.codeberg.org/markdown/using-images/).
 
