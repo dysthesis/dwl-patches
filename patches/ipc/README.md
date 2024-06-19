@@ -5,7 +5,8 @@ Status information to stdout is currently disabled as dwl tends to freeze. For n
 
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/ipc)
-- [2024-06-08](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch)
+- [2024-06-19](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch)
+- [2024-06-08](https://codeberg.org/dwl/dwl-patches/raw/commit/f8598a91b44acc3bd7e9041be97265bbce8fa219/patches/ipc/ipc.patch)
 - [2024-03-13](https://codeberg.org/dwl/dwl-patches/raw/commit/0150cfebbcd85f2d6e6728afad345a11a0c45947/ipc/ipc.patch)
 - [2024-02-20](https://codeberg.org/dwl/dwl-patches/raw/commit/0c5ae06e4bc1d7f641376e8fcb86b43bd48ce2ee/ipc/ipc.patch)
 - [2023-10-28](https://gist.githubusercontent.com/fbushstone/b116c44340eb7a7878de1119dd931ca5/raw/ee66ac9e2a5dddd9b528df553e21080c2811e974/ipc-v2-fixed.patch) Updated version of 2023-04-29, prevents ipc from freezing the compositor in printstatus.
