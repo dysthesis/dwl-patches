@@ -5,7 +5,8 @@ inspired by @guyuming76's [branch](https://codeberg.org/guyuming76/dwl/commits/b
 
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/tablet-input)
-- [2024-05-04](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/tablet-input/tablet-input.patch)
+- [2024-06-19](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/tablet-input/tablet-input.patch)
+- [2024-05-04](https://codeberg.org/dwl/dwl-patches/raw/commit/748b4bc6a73828f3e74b210862bebcda4c9dfb3c/patches/tablet-input/tablet-input.patch)
 
 ### Authors
 - [notchoc](https://codeberg.org/notchoc)
