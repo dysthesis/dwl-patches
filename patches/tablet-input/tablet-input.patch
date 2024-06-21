@@ -1,4 +1,4 @@
-From 7c7c37ac53deb9864c5721f77daa70c9f5d0f001 Mon Sep 17 00:00:00 2001
+From 3923f6f56cdbcad04b0aab601db99e17d4e50de0 Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Sat, 4 May 2024 01:16:12 +0800
 Subject: [PATCH] implement wlr-tablet-v2
@@ -10,19 +10,19 @@ Subject: [PATCH] implement wlr-tablet-v2
  3 files changed, 230 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index e3e6426..861c1af 100644
+index fdc581a..72e75ab 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -16,7 +16,7 @@ LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
  all: dwl
  dwl: dwl.o util.o
  	$(CC) dwl.o util.o $(DWLCFLAGS) $(LDFLAGS) $(LDLIBS) -o $@
--dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h xdg-shell-protocol.h
-+dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h xdg-shell-protocol.h tablet-unstable-v2-protocol.h
+-dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h wlr-output-power-management-unstable-v1-protocol.h xdg-shell-protocol.h
++dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h wlr-output-power-management-unstable-v1-protocol.h xdg-shell-protocol.h tablet-unstable-v2-protocol.h
  util.o: util.c util.h
  
  # wayland-scanner is a tool which generates C headers and rigging for Wayland
-@@ -37,6 +37,9 @@ wlr-layer-shell-unstable-v1-protocol.h:
+@@ -40,6 +40,9 @@ wlr-output-power-management-unstable-v1-protocol.h:
  xdg-shell-protocol.h:
  	$(WAYLAND_SCANNER) server-header \
  		$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml $@
@@ -45,10 +45,10 @@ index a784eb4..246356a 100644
  static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
  static const unsigned int borderpx         = 1;  /* border pixel of windows */
 diff --git a/dwl.c b/dwl.c
-index 5a31aee..b60f7bc 100644
+index 2cdc819..788b2b8 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -47,6 +47,9 @@
+@@ -48,6 +48,9 @@
  #include <wlr/types/wlr_session_lock_v1.h>
  #include <wlr/types/wlr_single_pixel_buffer_v1.h>
  #include <wlr/types/wlr_subcompositor.h>
@@ -58,7 +58,7 @@ index 5a31aee..b60f7bc 100644
  #include <wlr/types/wlr_viewporter.h>
  #include <wlr/types/wlr_virtual_keyboard_v1.h>
  #include <wlr/types/wlr_virtual_pointer_v1.h>
-@@ -266,6 +269,7 @@ static void createmon(struct wl_listener *listener, void *data);
+@@ -268,6 +271,7 @@ static void createmon(struct wl_listener *listener, void *data);
  static void createnotify(struct wl_listener *listener, void *data);
  static void createpointer(struct wlr_pointer *pointer);
  static void createpointerconstraint(struct wl_listener *listener, void *data);
@@ -66,7 +66,7 @@ index 5a31aee..b60f7bc 100644
  static void cursorconstrain(struct wlr_pointer_constraint_v1 *constraint);
  static void cursorframe(struct wl_listener *listener, void *data);
  static void cursorwarptohint(void);
-@@ -280,6 +284,9 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
+@@ -282,6 +286,9 @@ static void destroypointerconstraint(struct wl_listener *listener, void *data);
  static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroysessionmgr(struct wl_listener *listener, void *data);
  static void destroykeyboardgroup(struct wl_listener *listener, void *data);
@@ -76,7 +76,7 @@ index 5a31aee..b60f7bc 100644
  static Monitor *dirtomon(enum wlr_direction dir);
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
-@@ -332,6 +339,11 @@ static void spawn(const Arg *arg);
+@@ -335,6 +342,11 @@ static void spawn(const Arg *arg);
  static void startdrag(struct wl_listener *listener, void *data);
  static void tag(const Arg *arg);
  static void tagmon(const Arg *arg);
@@ -88,7 +88,7 @@ index 5a31aee..b60f7bc 100644
  static void tile(Monitor *m);
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
-@@ -389,6 +401,13 @@ static struct wlr_pointer_constraint_v1 *active_constraint;
+@@ -393,6 +405,13 @@ static struct wlr_pointer_constraint_v1 *active_constraint;
  static struct wlr_cursor *cursor;
  static struct wlr_xcursor_manager *cursor_mgr;
  
@@ -102,7 +102,7 @@ index 5a31aee..b60f7bc 100644
  static struct wlr_scene_rect *root_bg;
  static struct wlr_session_lock_manager_v1 *session_lock_mgr;
  static struct wlr_scene_rect *locked_bg;
-@@ -1089,6 +1108,28 @@ createpointerconstraint(struct wl_listener *listener, void *data)
+@@ -1096,6 +1115,28 @@ createpointerconstraint(struct wl_listener *listener, void *data)
  			&pointer_constraint->destroy, destroypointerconstraint);
  }
  
@@ -131,7 +131,7 @@ index 5a31aee..b60f7bc 100644
  void
  cursorconstrain(struct wlr_pointer_constraint_v1 *constraint)
  {
-@@ -1277,6 +1318,29 @@ destroykeyboardgroup(struct wl_listener *listener, void *data)
+@@ -1284,6 +1325,29 @@ destroykeyboardgroup(struct wl_listener *listener, void *data)
  	free(group);
  }
  
@@ -161,7 +161,7 @@ index 5a31aee..b60f7bc 100644
  Monitor *
  dirtomon(enum wlr_direction dir)
  {
-@@ -1472,6 +1536,12 @@ inputdevice(struct wl_listener *listener, void *data)
+@@ -1479,6 +1543,12 @@ inputdevice(struct wl_listener *listener, void *data)
  	case WLR_INPUT_DEVICE_POINTER:
  		createpointer(wlr_pointer_from_input_device(device));
  		break;
@@ -174,7 +174,7 @@ index 5a31aee..b60f7bc 100644
  	default:
  		/* TODO handle other input device types */
  		break;
-@@ -2460,6 +2530,8 @@ setup(void)
+@@ -2498,6 +2568,8 @@ setup(void)
  
  	relative_pointer_mgr = wlr_relative_pointer_manager_v1_create(dpy);
  
@@ -183,7 +183,7 @@ index 5a31aee..b60f7bc 100644
  	/*
  	 * Creates a cursor, which is a wlroots utility for tracking the cursor
  	 * image shown on screen.
-@@ -2489,6 +2561,10 @@ setup(void)
+@@ -2527,6 +2599,10 @@ setup(void)
  	LISTEN_STATIC(&cursor->events.button, buttonpress);
  	LISTEN_STATIC(&cursor->events.axis, axisnotify);
  	LISTEN_STATIC(&cursor->events.frame, cursorframe);
@@ -194,7 +194,7 @@ index 5a31aee..b60f7bc 100644
  
  	cursor_shape_mgr = wlr_cursor_shape_manager_v1_create(dpy, 1);
  	LISTEN_STATIC(&cursor_shape_mgr->events.request_set_shape, setcursorshape);
-@@ -2584,6 +2660,155 @@ tagmon(const Arg *arg)
+@@ -2622,6 +2698,155 @@ tagmon(const Arg *arg)
  		setmon(sel, dirtomon(arg->i), 0);
  }
  
