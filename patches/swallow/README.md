@@ -5,6 +5,8 @@ foot is the terminal by default, you can change it in client rules in config.h.
 
 2023-08-16 and up are made to also work with x windows: https://codeberg.org/dwl/dwl/issues/331
 
+for freebsd users: apply swallow-freebsd.patch **on top of** swallow.patch
+
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/swallow)
 - [2024-05-02](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/swallow/swallow.patch)
