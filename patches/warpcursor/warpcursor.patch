@@ -1,17 +1,17 @@
-From 8fd10973586e774fb83cc540e3b7a033bec2ca73 Mon Sep 17 00:00:00 2001
+From fd0c1ff2c8373c9cf76f893b331f383299e6ae38 Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Thu, 4 Jan 2024 20:30:01 +1000
 Subject: [PATCH] warpcursor
 
 ---
- dwl.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ dwl.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
 diff --git a/dwl.c b/dwl.c
-index bf763dfc..6bad7d51 100644
+index 521b07a6..37ec0b0f 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -343,6 +343,7 @@ static void urgent(struct wl_listener *listener, void *data);
+@@ -350,6 +350,7 @@ static void urgent(struct wl_listener *listener, void *data);
  static void view(const Arg *arg);
  static void virtualkeyboard(struct wl_listener *listener, void *data);
  static void virtualpointer(struct wl_listener *listener, void *data);
@@ -19,7 +19,7 @@ index bf763dfc..6bad7d51 100644
  static Monitor *xytomon(double x, double y);
  static void xytonode(double x, double y, struct wlr_surface **psurface,
  		Client **pc, LayerSurface **pl, double *nx, double *ny);
-@@ -497,6 +498,7 @@ arrange(Monitor *m)
+@@ -517,6 +518,7 @@ arrange(Monitor *m)
  		m->lt[m->sellt]->arrange(m);
  	motionnotify(0, NULL, 0, 0, 0, 0);
  	checkidleinhibitor(NULL);
@@ -27,25 +27,26 @@ index bf763dfc..6bad7d51 100644
  }
  
  void
-@@ -1244,6 +1246,9 @@ focusclient(Client *c, int lift)
+@@ -1314,6 +1316,10 @@ focusclient(Client *c, int lift)
  	if (locked)
  		return;
  
 +	/* Warp cursor to center of client if it is outside */
-+	warpcursor(c);
++	if (lift)
++		warpcursor(c);
 +
  	/* Raise client in stacking order if requested */
  	if (c && lift)
  		wlr_scene_node_raise_to_top(&c->scene->node);
-@@ -1344,6 +1349,7 @@ focusstack(const Arg *arg)
+@@ -1659,6 +1665,7 @@ mapnotify(struct wl_listener *listener, void *data)
+ 			focusclient(c, 1);
+ 			exclusive_focus = c;
+ 		}
++		warpcursor(c);
+ 		goto unset_fullscreen;
  	}
- 	/* If only one client is visible on selmon, then c == sel */
- 	focusclient(c, 1);
-+	warpcursor(focustop(selmon));
- }
  
- /* We probably should change the name of this, it sounds like
-@@ -2858,6 +2864,27 @@ virtualpointer(struct wl_listener *listener, void *data)
+@@ -2921,6 +2928,27 @@ virtualpointer(struct wl_listener *listener, void *data)
  		wlr_cursor_map_input_to_output(cursor, &pointer.base, event->suggested_output);
  }
  
@@ -74,5 +75,5 @@ index bf763dfc..6bad7d51 100644
  xytomon(double x, double y)
  {
 -- 
-2.43.0
+2.45.2
 
