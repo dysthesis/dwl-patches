@@ -5,7 +5,7 @@ This patch is useful - and solves issue [#628](https://codeberg.org/dwl/dwl/issu
 
 ### Download
 - [git branch](https://codeberg.org/sewn/dwl/src/branch/rlimit_max)
-- [2024-06-06](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/rlimit_max/rlimit_max.patch)
+- [2024-06-26](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/rlimit_max/rlimit_max.patch)
 
 ### Authors
 - [sewn](https://codeberg.org/sewn)
