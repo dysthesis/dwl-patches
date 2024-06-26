@@ -5,7 +5,7 @@ It also stops drawing empty rectangles on the bar for non-vacant tags as there i
 
 ### Download
 - [git branch](https://codeberg.org/sewn/dwl/src/branch/hide_vacant_tags)
-- [2024-06-26](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/hide_vacant_tags/hide_vacant_tags.patch) (bar 2024-06-26)
+- [2024-06-27](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/hide_vacant_tags/hide_vacant_tags.patch) (bar 2024-06-27)
 
 ### Authors
 - [sewn](https://codeberg.org/sewn)
