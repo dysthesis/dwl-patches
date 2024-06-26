@@ -10,4 +10,4 @@ Hide the mouse cursor if it isn't being used for a certain period of time.
 ### Authors
 - [Guido Cella](https://github.com/guidocella)
 - [dm1tz](https://github.com/dm1tz)
-- [Ben Collerson](https://codeberg.org/benc)
+- [Ben Collerson](https://codeberg.org/bencc)
