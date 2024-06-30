@@ -15,7 +15,7 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  2 files changed, 61 insertions(+), 5 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 646a3d66..c3ca3a20 100644
+index 22d2171..1d0f935 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -20,6 +20,13 @@ static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You ca
@@ -29,9 +29,9 @@ index 646a3d66..c3ca3a20 100644
 +};
 +
 +
+ /* NOTE: ALWAYS keep a rule declared even if you don't use rules (e.g leave at least one example) */
  static const Rule rules[] = {
  	/* app_id             title       tags mask     isfloating   monitor */
- 	/* examples: */
 diff --git a/dwl.c b/dwl.c
 index 00e9cc1e..5de32831 100644
 --- a/dwl.c
