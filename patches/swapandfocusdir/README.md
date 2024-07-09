@@ -7,6 +7,7 @@ Swap the focused window with the window (no floating) to the left, right, above,
 
 ### Download
 - [git branch](https://codeberg.org/wochap/dwl/src/branch/v0.5/swapandfocusdir)
+- [2024-07-09](https://codeberg.org/dwl/dwl-patches/raw/commit/13d96b51b54500dd24544cf3a73c61b7a1414bc6/patches/swapandfocusdir/swapandfocusdir.patch)
 - [v0.5](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/swapandfocusdir/swapandfocusdir.patch)
 
 ### Authors

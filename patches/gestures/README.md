@@ -13,6 +13,7 @@ static const Gesture gestures[] = {
 
 ### Download
 - [git branch](https://codeberg.org/wochap/dwl/src/branch/v0.5/gestures)
+- [2024-07-09](https://codeberg.org/dwl/dwl-patches/raw/commit/13d96b51b54500dd24544cf3a73c61b7a1414bc6/patches/gestures/gestures.patch)
 - [2024-04-11](https://codeberg.org/dwl/dwl-patches/raw/commit/be3735bc6a5c64ff76c200a8679453bd179be456/gestures/gestures.patch)
 - [v0.5](https://codeberg.org/dwl/dwl-patches/raw/commit/655fd2916c1bcaa022ce6dcdfb370051cf64df66/gestures/gestures.patch)
 

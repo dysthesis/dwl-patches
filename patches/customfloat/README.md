@@ -15,6 +15,7 @@ The "Monitor area" refers to the space enclosed by the green rectangle, while th
 
 ### Download
 - [git branch](https://codeberg.org/wochap/dwl/src/branch/v0.5/customfloat)
+- [2024-07-09](https://codeberg.org/dwl/dwl-patches/raw/commit/13d96b51b54500dd24544cf3a73c61b7a1414bc6/patches/customfloat/customfloat.patch)
 - [2024-04-11](https://codeberg.org/dwl/dwl-patches/raw/commit/98cba933c9f4099202e54f39acbf17e05bde828a/customfloat/customfloat.patch)
 - [v0.5](https://codeberg.org/dwl/dwl-patches/raw/commit/bf098459219e7a473d8edb4c0435aeb6a4b82e38/customfloat/customfloat.patch)
 
