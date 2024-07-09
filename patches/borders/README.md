@@ -30,6 +30,7 @@ and `border_color_type` set to `BrdStartEnd`:
 
 ### Download
 - [git branch](https://codeberg.org/wochap/dwl/src/branch/v0.5/borders)
+- [2024-06-04](https://codeberg.org/dwl/dwl-patches/raw/commit/1a6825f2b8cd23044312c8040d0bf63ee7f85bc5/patches/borders/borders.patch)
 - [v0.5](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/borders/borders.patch)
 
 ### Authors
