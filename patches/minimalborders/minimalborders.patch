@@ -1,16 +1,15 @@
-From 225fcc26d1b0fd696a90817c996b670ced8964f2 Mon Sep 17 00:00:00 2001
+From ce0eb92fb100801f343fbe9b76639847a9e39160 Mon Sep 17 00:00:00 2001
 From: wochap <gean.marroquin@gmail.com>
-Date: Thu, 11 Apr 2024 14:34:45 -0500
-Subject: [PATCH] apply minimal borders
+Date: Fri, 5 Jul 2024 11:22:57 -0500
+Subject: [PATCH] implement minimalborders
 
-dynamically adjusts the borders between adjacent clients to make them visually merge
 ---
  config.def.h |  1 +
  dwl.c        | 77 ++++++++++++++++++++++++++++++++++++++++++++++++----
  2 files changed, 72 insertions(+), 6 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 8847e58..55d8796 100644
+index 22d2171..0322dbf 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -7,6 +7,7 @@
@@ -22,10 +21,10 @@ index 8847e58..55d8796 100644
  static const float bordercolor[]           = COLOR(0x444444ff);
  static const float focuscolor[]            = COLOR(0x005577ff);
 diff --git a/dwl.c b/dwl.c
-index bf763df..d581f31 100644
+index dc0437e..198061b 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -105,6 +105,7 @@ typedef struct Monitor Monitor;
+@@ -106,6 +106,7 @@ typedef struct Monitor Monitor;
  typedef struct {
  	/* Must keep these three elements in this order */
  	unsigned int type; /* XDGShell or X11* */
@@ -33,7 +32,7 @@ index bf763df..d581f31 100644
  	struct wlr_box geom; /* layout-relative, includes border */
  	Monitor *mon;
  	struct wlr_scene_tree *scene;
-@@ -312,7 +313,8 @@ static void rendermon(struct wl_listener *listener, void *data);
+@@ -316,7 +317,8 @@ static void rendermon(struct wl_listener *listener, void *data);
  static void requestdecorationmode(struct wl_listener *listener, void *data);
  static void requeststartdrag(struct wl_listener *listener, void *data);
  static void requestmonstate(struct wl_listener *listener, void *data);
@@ -43,7 +42,7 @@ index bf763df..d581f31 100644
  static void run(char *startup_cmd);
  static void setcursor(struct wl_listener *listener, void *data);
  static void setcursorshape(struct wl_listener *listener, void *data);
-@@ -405,6 +407,8 @@ static struct wlr_box sgeom;
+@@ -408,6 +410,8 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
  
@@ -52,7 +51,7 @@ index bf763df..d581f31 100644
  #ifdef XWAYLAND
  static void activatex11(struct wl_listener *listener, void *data);
  static void associatex11(struct wl_listener *listener, void *data);
-@@ -473,6 +477,35 @@ applyrules(Client *c)
+@@ -476,6 +480,35 @@ applyrules(Client *c)
  	setmon(c, mon, newtags);
  }
  
@@ -88,9 +87,9 @@ index bf763df..d581f31 100644
  void
  arrange(Monitor *m)
  {
-@@ -493,8 +526,28 @@ arrange(Monitor *m)
- 
- 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, LENGTH(m->ltsymbol));
+@@ -510,8 +543,28 @@ arrange(Monitor *m)
+ 								: c->scene->node.parent);
+ 	}
  
 -	if (m->lt[m->sellt]->arrange)
 -		m->lt[m->sellt]->arrange(m);
@@ -119,10 +118,10 @@ index bf763df..d581f31 100644
  	motionnotify(0, NULL, 0, 0, 0, 0);
  	checkidleinhibitor(NULL);
  }
-@@ -1883,8 +1936,13 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
+@@ -1962,8 +2015,13 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
  	struct timespec now;
  
- 	if ((!active_constraint || active_constraint->surface != surface) &&
+ 	if (surface != seat->pointer_state.focused_surface &&
 -			sloppyfocus && time && c && !client_is_unmanaged(c))
 -		focusclient(c, 0);
 +			sloppyfocus && time && c && !client_is_unmanaged(c)) {
@@ -135,16 +134,16 @@ index bf763df..d581f31 100644
  
  	/* If surface is NULL, clear pointer focus */
  	if (!surface) {
-@@ -2032,7 +2090,7 @@ requestmonstate(struct wl_listener *listener, void *data)
+@@ -2128,7 +2186,7 @@ requestmonstate(struct wl_listener *listener, void *data)
  }
  
  void
 -resize(Client *c, struct wlr_box geo, int interact)
 +resizeapply(Client *c, struct wlr_box geo, int interact)
  {
- 	struct wlr_box *bbox = interact ? &sgeom : &c->mon->w;
+ 	struct wlr_box *bbox;
  	struct wlr_box clip;
-@@ -2058,6 +2116,13 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2160,6 +2218,13 @@ resize(Client *c, struct wlr_box geo, int interact)
  	wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
  }
  
@@ -159,4 +158,4 @@ index bf763df..d581f31 100644
  run(char *startup_cmd)
  {
 -- 
-2.43.2
+2.45.1
