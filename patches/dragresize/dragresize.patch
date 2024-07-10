@@ -1,4 +1,4 @@
-From 1b71396b9036d7c3b4a9f6a8830d189b5dae3bfc Mon Sep 17 00:00:00 2001
+From 83ae7d4816a49f46063ab16ffecd32b2e7e61784 Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Fri, 15 Sep 2023 11:45:16 +0800
 Subject: [PATCH] dragresize: implement rio-like window resizing
@@ -9,10 +9,10 @@ select window to resize then drag out an area for it to occupy
  1 file changed, 98 insertions(+), 34 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 5a31aee..258d19b 100644
+index dc0437e..843aa7a 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -79,7 +79,7 @@
+@@ -80,7 +80,7 @@
  #define LISTEN_STATIC(E, H)     do { static struct wl_listener _l = {.notify = (H)}; wl_signal_add((E), &_l); } while (0)
  
  /* enums */
@@ -21,11 +21,12 @@ index 5a31aee..258d19b 100644
  enum { XDGShell, LayerShell, X11 }; /* client types */
  enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
  #ifdef XWAYLAND
-@@ -601,14 +601,20 @@ buttonpress(struct wl_listener *listener, void *data)
+@@ -603,15 +603,21 @@ buttonpress(struct wl_listener *listener, void *data)
  
  	switch (event->state) {
  	case WLR_BUTTON_PRESSED:
 -		cursor_mode = CurPressed;
+ 		selmon = xytomon(cursor->x, cursor->y);
 -		if (locked)
 +		if (locked) {
 +			cursor_mode = CurPressed;
@@ -48,7 +49,7 @@ index 5a31aee..258d19b 100644
  
  		keyboard = wlr_seat_get_keyboard(seat);
  		mods = keyboard ? wlr_keyboard_get_modifiers(keyboard) : 0;
-@@ -621,17 +627,42 @@ buttonpress(struct wl_listener *listener, void *data)
+@@ -624,17 +630,42 @@ buttonpress(struct wl_listener *listener, void *data)
  		}
  		break;
  	case WLR_BUTTON_RELEASED:
@@ -98,8 +99,8 @@ index 5a31aee..258d19b 100644
  		}
  		break;
  	}
-@@ -1803,15 +1834,33 @@ motionnotify(uint32_t time, struct wlr_input_device *device, double dx, double d
- 	wlr_scene_node_set_position(&drag_icon->node, ROUND(cursor->x), ROUND(cursor->y));
+@@ -1815,15 +1846,33 @@ motionnotify(uint32_t time, struct wlr_input_device *device, double dx, double d
+ 	wlr_scene_node_set_position(&drag_icon->node, (int)round(cursor->x), (int)round(cursor->y));
  
  	/* If we are currently grabbing the mouse, handle and return */
 -	if (cursor_mode == CurMove) {
@@ -108,22 +109,22 @@ index 5a31aee..258d19b 100644
 +		return;
 +	case CurMove:
  		/* Move the grabbed client to the new position. */
- 		resize(grabc, (struct wlr_box){.x = ROUND(cursor->x) - grabcx, .y = ROUND(cursor->y) - grabcy,
+ 		resize(grabc, (struct wlr_box){.x = (int)round(cursor->x) - grabcx, .y = (int)round(cursor->y) - grabcy,
  			.width = grabc->geom.width, .height = grabc->geom.height}, 1);
  		return;
 -	} else if (cursor_mode == CurResize) {
 -		resize(grabc, (struct wlr_box){.x = grabc->geom.x, .y = grabc->geom.y,
--			.width = ROUND(cursor->x) - grabc->geom.x, .height = ROUND(cursor->y) - grabc->geom.y}, 1);
+-			.width = (int)round(cursor->x) - grabc->geom.x, .height = (int)round(cursor->y) - grabc->geom.y}, 1);
 -		return;
 +	case CurResize:
 +		{
 +			int w, h, x, y;
 +			if (!grabc)
 +				return;
-+			w = abs(grabcx - ROUND(cursor->x));
-+			h = abs(grabcy - ROUND(cursor->y));
-+			x = MIN(grabcx, ROUND(cursor->x)) - grabc->geom.x;
-+			y = MIN(grabcy, ROUND(cursor->y)) - grabc->geom.y;
++			w = abs(grabcx - (int)round(cursor->x));
++			h = abs(grabcy - (int)round(cursor->y));
++			x = MIN(grabcx, (int)round(cursor->x)) - grabc->geom.x;
++			y = MIN(grabcy, (int)round(cursor->y)) - grabc->geom.y;
 +			wlr_scene_rect_set_size(grabc->border[0], w, grabc->bw);
 +			wlr_scene_rect_set_size(grabc->border[1], w, grabc->bw);
 +			wlr_scene_rect_set_size(grabc->border[2], grabc->bw, h - 2 * grabc->bw);
@@ -137,7 +138,7 @@ index 5a31aee..258d19b 100644
  	}
  
  	/* If there's no client surface under the cursor, set the cursor image to a
-@@ -1841,29 +1890,43 @@ motionrelative(struct wl_listener *listener, void *data)
+@@ -1853,29 +1902,43 @@ motionrelative(struct wl_listener *listener, void *data)
  void
  moveresize(const Arg *arg)
  {
@@ -170,8 +171,8 @@ index 5a31aee..258d19b 100644
 +		wlr_cursor_set_xcursor(cursor, cursor_mgr, "tcross");
 +		return;
  	case CurMove:
- 		grabcx = ROUND(cursor->x) - grabc->geom.x;
- 		grabcy = ROUND(cursor->y) - grabc->geom.y;
+ 		grabcx = (int)round(cursor->x) - grabc->geom.x;
+ 		grabcy = (int)round(cursor->y) - grabc->geom.y;
 +		setfloating(grabc, 1);
  		wlr_cursor_set_xcursor(cursor, cursor_mgr, "fleur");
 -		break;
@@ -196,7 +197,7 @@ index 5a31aee..258d19b 100644
  }
  
  void
-@@ -2108,6 +2171,7 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2149,6 +2212,7 @@ resize(Client *c, struct wlr_box geo, int interact)
  	wlr_scene_rect_set_size(c->border[1], c->geom.width, c->bw);
  	wlr_scene_rect_set_size(c->border[2], c->bw, c->geom.height - 2 * c->bw);
  	wlr_scene_rect_set_size(c->border[3], c->bw, c->geom.height - 2 * c->bw);
