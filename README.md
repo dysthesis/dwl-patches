@@ -63,7 +63,7 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
     - Add your own nick/link to the top of the "Authors" list.
 
 ## Deprecating Existing Patches
-- Patches will not be removed from this archive but may instead be deprecated if the author(s)/maintainer(s) of a patch so desired.
+- Patches will not be removed from this archive but may instead be deprecated if the author(s)/maintainer(s) of a patch so desire.
 - Please do not open issues or contact maintainers to request deprecation of a patch.
 - Deprecation of a patch will only occur if *all* authors or current maintainers of the patch agree to the decision to deprecate.
 - In such a circumstance the author(s)/maintainer(s):
