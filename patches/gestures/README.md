@@ -1,6 +1,8 @@
 ### Description
 Add swipe gestures to trigger functions, similar to [libinput-gestures](https://github.com/bulletmark/libinput-gestures/tree/master). It supports the following gestures: `SWIPE_UP`, `SWIPE_DOWN`, `SWIPE_LEFT` and `SWIPE_RIGHT`
 
+> NOTE: It requires that you have previously applied [pointer-gestures-unstable-v1](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/pointer-gestures-unstable-v1)
+
 ```c
 static const Gesture gestures[] = {
   /* modifier gesture       fingers_count   function    argument */
