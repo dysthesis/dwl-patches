@@ -1,4 +1,4 @@
-From b70e7e26d74e4f46b48f0d3ed67c8e9465d86c4e Mon Sep 17 00:00:00 2001
+From 50e3dd4746b6cb719efb9f8213b94ac52a5320d9 Mon Sep 17 00:00:00 2001
 From: peesock <kcormn@gmail.com>
 Date: Mon, 24 Jun 2024 20:06:42 -0700
 Subject: [PATCH] gaps!
@@ -11,7 +11,7 @@ Co-authored-by: serenevoid <ajuph9224@gmail.com>
  2 files changed, 30 insertions(+), 8 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 646a3d6..1983e53 100644
+index 22d2171..b388b4e 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -6,6 +6,9 @@
@@ -24,7 +24,7 @@ index 646a3d6..1983e53 100644
  static const unsigned int borderpx         = 1;  /* border pixel of windows */
  static const float rootcolor[]             = COLOR(0x222222ff);
  static const float bordercolor[]           = COLOR(0x444444ff);
-@@ -134,6 +137,7 @@ static const Key keys[] = {
+@@ -135,6 +138,7 @@ static const Key keys[] = {
  	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05f} },
  	{ MODKEY,                    XKB_KEY_Return,     zoom,           {0} },
  	{ MODKEY,                    XKB_KEY_Tab,        view,           {0} },
@@ -33,10 +33,10 @@ index 646a3d6..1983e53 100644
  	{ MODKEY,                    XKB_KEY_t,          setlayout,      {.v = &layouts[0]} },
  	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[1]} },
 diff --git a/dwl.c b/dwl.c
-index 00e9cc1..9a3bf1d 100644
+index dc0437e..dc851df 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -200,6 +200,7 @@ struct Monitor {
+@@ -199,6 +199,7 @@ struct Monitor {
  	struct wlr_box w; /* window area, layout-relative */
  	struct wl_list layers[4]; /* LayerSurface.link */
  	const Layout *lt[2];
@@ -44,7 +44,7 @@ index 00e9cc1..9a3bf1d 100644
  	unsigned int seltags;
  	unsigned int sellt;
  	uint32_t tagset[2];
-@@ -338,6 +339,7 @@ static void tagmon(const Arg *arg);
+@@ -336,6 +337,7 @@ static void tagmon(const Arg *arg);
  static void tile(Monitor *m);
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
@@ -52,7 +52,7 @@ index 00e9cc1..9a3bf1d 100644
  static void toggletag(const Arg *arg);
  static void toggleview(const Arg *arg);
  static void unlocksession(struct wl_listener *listener, void *data);
-@@ -936,6 +938,8 @@ createmon(struct wl_listener *listener, void *data)
+@@ -949,6 +951,8 @@ createmon(struct wl_listener *listener, void *data)
  
  	wlr_output_state_init(&state);
  	/* Initialize monitor state using configured rules */
@@ -61,7 +61,7 @@ index 00e9cc1..9a3bf1d 100644
  	m->tagset[0] = m->tagset[1] = 1;
  	for (r = monrules; r < END(monrules); r++) {
  		if (!r->name || strstr(wlr_output->name, r->name)) {
-@@ -2626,7 +2630,7 @@ tagmon(const Arg *arg)
+@@ -2638,7 +2642,7 @@ tagmon(const Arg *arg)
  void
  tile(Monitor *m)
  {
@@ -70,7 +70,7 @@ index 00e9cc1..9a3bf1d 100644
  	int i, n = 0;
  	Client *c;
  
-@@ -2635,23 +2639,30 @@ tile(Monitor *m)
+@@ -2647,23 +2651,30 @@ tile(Monitor *m)
  			n++;
  	if (n == 0)
  		return;
@@ -78,8 +78,8 @@ index 00e9cc1..9a3bf1d 100644
 +		e = 0;
  
  	if (n > m->nmaster)
--		mw = m->nmaster ? ROUND(m->w.width * m->mfact) : 0;
-+		mw = m->nmaster ? ROUND((m->w.width + gappx*e) * m->mfact) : 0;
+-		mw = m->nmaster ? (int)roundf(m->w.width * m->mfact) : 0;
++		mw = m->nmaster ? (int)roundf((m->w.width + gappx*e) * m->mfact) : 0;
  	else
  		mw = m->w.width;
 -	i = my = ty = 0;
@@ -108,7 +108,7 @@ index 00e9cc1..9a3bf1d 100644
  		}
  		i++;
  	}
-@@ -2674,6 +2685,13 @@ togglefullscreen(const Arg *arg)
+@@ -2686,6 +2697,13 @@ togglefullscreen(const Arg *arg)
  		setfullscreen(sel, !sel->isfullscreen);
  }
  

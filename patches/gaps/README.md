@@ -5,7 +5,7 @@ Adds gaps between clients, providing the ability to disable them at run-time.
 
 ### Download
 - [git branch](https://codeberg.org/bigman/dwl/src/branch/gaps)
-- [2024-06-24](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/gaps/gaps.patch)
+- [2024-07-12](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/gaps/gaps.patch)
 
 ### Authors
 - [peesock](https://codeberg.org/bigman)
