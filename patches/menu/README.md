@@ -9,7 +9,8 @@ By default, two menus are available:
 Edit `menus` array in `config.h` to add/change menus and use a different dmenu program.
 
 ### Download
-- [2024-05-18](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/menu/menu.patch)
+- [git branch](https://codeberg.org/nikitaivanov/dwl/src/branch/menu)
+- [2024-07-13](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/menu/menu.patch)
 
 ### Authors
 - [Nikita Ivanov](https://github.com/NikitaIvanovV)
