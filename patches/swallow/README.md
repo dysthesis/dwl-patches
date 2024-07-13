@@ -9,7 +9,9 @@ for freebsd users: apply swallow-freebsd.patch **on top of** swallow.patch
 
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/swallow)
-- [2024-05-02](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/swallow/swallow.patch)
+- [2024-07-13](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/swallow/swallow.patch)
+- [2024-07-13](https://codeberg.org/dwl/dwl-patches/raw/commit/f64d701bab2f9f52d3637edd091684f920407d87/patches/swallow/swallow.patch)
+- [2024-05-02](https://codeberg.org/dwl/dwl-patches/raw/commit/9c5d5d85f3ac780e7a14d5d0535e3349ce8b8f53/patches/swallow/swallow.patch)
 - [2024-04-03](https://codeberg.org/dwl/dwl-patches/raw/commit/3c9a8e3232a8531871924484cef1ef0938730e15/swallow/swallow.patch)
 - [2024-01-01](https://codeberg.org/dwl/dwl-patches/raw/commit/8a352a1b27a64821ba9fbfda52fe82463ac84c66/swallow/swallow.patch)
 - [2023-10-26](https://github.com/djpohly/dwl/compare/main...youbitchoc:swallow.patch)
