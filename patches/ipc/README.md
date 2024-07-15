@@ -5,7 +5,8 @@ Status information to stdout is currently disabled as dwl tends to freeze. For n
 
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/ipc)
-- [2024-06-30](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch)
+- [2024-07-15](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch)
+- [2024-06-30](https://codeberg.org/dwl/dwl-patches/raw/commit/9a751e5020133d3ab9219e68a43109c6f3c931a7/patches/ipc/ipc.patch)
 - [2024-06-21](https://codeberg.org/dwl/dwl-patches/raw/commit/f96ee44cbaef06bd38b8fa29ac7ecba8b1b5abd5/patches/ipc/ipc.patch)
 - [2024-06-19](https://codeberg.org/dwl/dwl-patches/raw/commit/e69afc7263b8d982a7923e5d4910f2e1f7140bb8/patches/ipc/ipc.patch)
 - [2024-06-08](https://codeberg.org/dwl/dwl-patches/raw/commit/f8598a91b44acc3bd7e9041be97265bbce8fa219/patches/ipc/ipc.patch)
