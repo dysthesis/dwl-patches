@@ -8,7 +8,7 @@ config flag as I think it is unnecessary.
 
 ### Download
 - [git branch](https://codeberg.org/bencc/dwl/src/branch/warpcursor)
-- [2024-06-26](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/warpcursor/warpcursor.patch)
+- [v0.6](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/warpcursor/warpcursor.patch)
 
 ### Authors
 - [Faerryn](https://github.com/faerryn)
