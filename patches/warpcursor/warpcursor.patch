@@ -1,4 +1,4 @@
-From 65075bed3ba08ae2e2a05155d7fffd23306d34fb Mon Sep 17 00:00:00 2001
+From 4951ccc89dac2b557994b2f6c3aacb2398e2d1b1 Mon Sep 17 00:00:00 2001
 From: Ben Collerson <benc@benc.cc>
 Date: Thu, 4 Jan 2024 20:30:01 +1000
 Subject: [PATCH] warpcursor
@@ -8,7 +8,7 @@ Subject: [PATCH] warpcursor
  1 file changed, 27 insertions(+)
 
 diff --git a/dwl.c b/dwl.c
-index 145fd018..30ecf969 100644
+index 145fd018..f7ad6c13 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -347,6 +347,7 @@ static void urgent(struct wl_listener *listener, void *data);
@@ -23,7 +23,7 @@ index 145fd018..30ecf969 100644
  		m->lt[m->sellt]->arrange(m);
  	motionnotify(0, NULL, 0, 0, 0, 0);
  	checkidleinhibitor(NULL);
-+	warpcursor(c);
++	warpcursor(focustop(selmon));
  }
  
  void
