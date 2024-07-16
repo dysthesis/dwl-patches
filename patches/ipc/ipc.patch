@@ -1,4 +1,4 @@
-From 74015b683466c5f1eace0a336f9418eaefdf0133 Mon Sep 17 00:00:00 2001
+From 13efb1a89457df2acd138d671c298e07b3d34683 Mon Sep 17 00:00:00 2001
 From: choc <notchoc@proton.me>
 Date: Mon, 23 Oct 2023 10:35:17 +0800
 Subject: [PATCH] implement dwl-ipc-unstable-v2
@@ -7,9 +7,9 @@ Subject: [PATCH] implement dwl-ipc-unstable-v2
 ---
  Makefile                          |  14 +-
  config.def.h                      |   1 +
- dwl.c                             | 259 ++++++++++++++++++++++++++----
+ dwl.c                             | 258 ++++++++++++++++++++++++++----
  protocols/dwl-ipc-unstable-v2.xml | 181 +++++++++++++++++++++
- 4 files changed, 417 insertions(+), 38 deletions(-)
+ 4 files changed, 417 insertions(+), 37 deletions(-)
  create mode 100644 protocols/dwl-ipc-unstable-v2.xml
 
 diff --git a/Makefile b/Makefile
@@ -60,7 +60,7 @@ index 22d2171..1593033 100644
  	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
  	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
 diff --git a/dwl.c b/dwl.c
-index 5bf995e..fbdf13a 100644
+index 5bf995e..3aed40b 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -67,6 +67,7 @@
@@ -346,7 +346,7 @@ index 5bf995e..fbdf13a 100644
 -	Client *c;
 -	uint32_t occ, urg, sel;
 -	const char *appid, *title;
--
+ 
 -	wl_list_for_each(m, &mons, link) {
 -		occ = urg = 0;
 -		wl_list_for_each(c, &clients, link) {
@@ -371,7 +371,7 @@ index 5bf995e..fbdf13a 100644
 -			printf("%s floating \n", m->wlr_output->name);
 -			sel = 0;
 -		}
- 
+-
 -		printf("%s selmon %u\n", m->wlr_output->name, m == selmon);
 -		printf("%s tags %"PRIu32" %"PRIu32" %"PRIu32" %"PRIu32"\n",
 -			m->wlr_output->name, occ, m->tagset[m->seltags], sel, urg);
@@ -383,7 +383,7 @@ index 5bf995e..fbdf13a 100644
  }
  
  void
-@@ -2624,11 +2805,12 @@ setup(void)
+@@ -2624,6 +2805,8 @@ setup(void)
  	LISTEN_STATIC(&output_mgr->events.apply, outputmgrapply);
  	LISTEN_STATIC(&output_mgr->events.test, outputmgrtest);
  
@@ -392,12 +392,7 @@ index 5bf995e..fbdf13a 100644
  	/* Make sure XWayland clients don't connect to the parent X server,
  	 * e.g when running in the x11 backend or the wayland backend and the
  	 * compositor has Xwayland support */
- 	unsetenv("DISPLAY");
--#ifdef XWAYLAND
- 	/*
- 	 * Initialise the XWayland X server.
- 	 * It will be started when the first X client is started.
-@@ -2721,6 +2903,13 @@ tile(Monitor *m)
+@@ -2721,6 +2904,13 @@ tile(Monitor *m)
  	}
  }
  
