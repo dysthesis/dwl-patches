@@ -5,7 +5,7 @@
 ## _STALE_PATCHES
 Many patches previously in regular use do not cleanly apply to the current code base. Following the migration to Codeberg, these stale patch descriptions were relocated to [_STALE_PATCHES].
 
-Additionally, patches that have been deprecated by their author(s)/maintainer(s) may be found in _STALE_PATCHES.
+Additionally, patches that have been deprecated by their author(s)/maintainer(s) may be found in [_STALE_PATCHES].
 
 If you are an original author of one of these or you have the inclination to revive one of these, please follow the same procedures outlined below for contributing new patches.
 
@@ -15,7 +15,7 @@ In your initial pull request (or in the commit that revives the stale patch if y
 Since dwl follows [suckless](https://suckless.org/) philosophy, it doesn't provide every feature under the sun. To broaden dwl's functionality, one needs to get familiar with the concept of patching. To get your feet wet, consult [the hacking page](https://suckless.org/hacking/) of the suckless website.
 
 Patches should normally target the latest dwl [release].  
-If you target an older release, specify that in the `Download` link on your `README.md` page.
+If you target an older release, specify that in the `Download` link on your `README.md` page.  
 If you target the unstable `main` branch, specify that in the `Download` link on your `README.md` page.
 
 *Note: These external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!*
