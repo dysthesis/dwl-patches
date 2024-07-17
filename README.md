@@ -1,5 +1,5 @@
 # dwl-patches
-* A general [dwl wiki](https://codeberg.org/dwl/dwl/wiki) is available at the main [dwl](https://codeberg.org/dwl/dwl) page.
+* A general [dwl wiki](https://codeberg.org/dwl/dwl/wiki) is available at the main [dwl] page.
 * This repository is exclusively for dwl PATCHES.
 
 ## _STALE_PATCHES
@@ -12,9 +12,11 @@ If you are an original author of one of these or you have the inclination to rev
 In your initial pull request (or in the commit that revives the stale patch if you already have write access), remove the `.md` file from [_STALE_PATCHES] for the patch which you have revived.
 
 ## Patching
-Since dwl follows [suckless](https://suckless.org/) philosophy it doesn't provide every feature under the sun. To broaden dwl's functionality, one needs to get familiar with the concept of patching. To get your feet wet, consult [the hacking page](https://suckless.org/hacking/) of the suckless website.
+Since dwl follows [suckless](https://suckless.org/) philosophy, it doesn't provide every feature under the sun. To broaden dwl's functionality, one needs to get familiar with the concept of patching. To get your feet wet, consult [the hacking page](https://suckless.org/hacking/) of the suckless website.
 
-Since dwl is still taking shape, patches may need to be updated after larger changes to the code. Feel free to [contribute](instructions) updated versions!
+Patches should normally target the latest dwl [release].  
+If you target an older release, specify that in the `Download` link on your `README.md` page.
+If you target the unstable `main` branch, specify that in the `Download` link on your `README.md` page.
 
 *Note: These external patches are user-submitted content, and the authors of dwl cannot monitor them. Please download and review a patch before using it!*
 
@@ -72,9 +74,9 @@ Since dwl is still taking shape, patches may need to be updated after larger cha
 - This process allows current or future users of the patch the option to adopt, modify, or integrate stale/historical code or portions thereof.
 
 
-[dwl-patches]: https://codeberg.org/dwl/dwl-patches
-[Codeberg]: https://codeberg.org
+[_STALE_PATCHES]:https://codeberg.org/dwl/dwl-patches/src/branch/main/_STALE_PATCHES
 [dwl]: https://codeberg.org/dwl/dwl
 [dwl-patches]: https://codeberg.org/dwl/dwl-patches
 [issues]: https://codeberg.org/dwl/dwl-patches/issues
-[_STALE_PATCHES]:https://codeberg.org/dwl/dwl-patches/src/branch/main/_STALE_PATCHES
+[release]: https://codeberg.org/dwl/dwl/releases
+[Codeberg]: https://codeberg.org
