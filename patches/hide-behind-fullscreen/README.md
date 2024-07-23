@@ -5,7 +5,7 @@ be shown
 
 ### Download
 - [git branch](https://codeberg.org/sevz/dwl/src/branch/hide-behind-fullscreen)
-- [2024-06-13](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/hide-behind-fullscreen/hide-behind-fullscreen.patch)
+- [main 2024-09-01](/dwl/dwl-patches/raw/branch/main/patches/hide-behind-fullscreen/hide-behind-fullscreen.patch)
 - [hide-behind-fullscreen-0.7.patch](/dwl/dwl-patches/raw/branch/main/patches/hide-behind-fullscreen/hide-behind-fullscreen-0.7.patch)
 
 ### Authors
