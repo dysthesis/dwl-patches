@@ -1,4 +1,4 @@
-From acc4b618849ce625d6c32525e91743a96529580f Mon Sep 17 00:00:00 2001
+From a66874e623f8471bf5cee7f7d64ce97fc6cd1564 Mon Sep 17 00:00:00 2001
 From: Bonicgamer <44382222+Bonicgamer@users.noreply.github.com>
 Date: Mon, 17 Aug 2020 14:48:24 -0400
 Subject: [PATCH 1/2] Implement vanitygaps
@@ -13,7 +13,7 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  2 files changed, 161 insertions(+), 10 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index a784eb4f..6b04d9ff 100644
+index 22d2171d..39e528b1 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -6,7 +6,12 @@
@@ -29,7 +29,7 @@ index a784eb4f..6b04d9ff 100644
  static const float rootcolor[]             = COLOR(0x222222ff);
  static const float bordercolor[]           = COLOR(0x444444ff);
  static const float focuscolor[]            = COLOR(0x005577ff);
-@@ -130,6 +135,22 @@ static const Key keys[] = {
+@@ -133,6 +138,22 @@ static const Key keys[] = {
  	{ MODKEY,                    XKB_KEY_d,          incnmaster,     {.i = -1} },
  	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },
  	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05f} },
@@ -53,10 +53,10 @@ index a784eb4f..6b04d9ff 100644
  	{ MODKEY,                    XKB_KEY_Tab,        view,           {0} },
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_C,          killclient,     {0} },
 diff --git a/dwl.c b/dwl.c
-index 6f041a0d..6a3e6fe2 100644
+index 9021e442..14e4627a 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -199,6 +199,10 @@ struct Monitor {
+@@ -201,6 +201,10 @@ struct Monitor {
  	struct wlr_box w; /* window area, layout-relative */
  	struct wl_list layers[4]; /* LayerSurface.link */
  	const Layout *lt[2];
@@ -67,7 +67,7 @@ index 6f041a0d..6a3e6fe2 100644
  	unsigned int seltags;
  	unsigned int sellt;
  	uint32_t tagset[2];
-@@ -269,6 +273,7 @@ static void createpointerconstraint(struct wl_listener *listener, void *data);
+@@ -274,6 +278,7 @@ static void createpopup(struct wl_listener *listener, void *data);
  static void cursorconstrain(struct wlr_pointer_constraint_v1 *constraint);
  static void cursorframe(struct wl_listener *listener, void *data);
  static void cursorwarptohint(void);
@@ -75,8 +75,8 @@ index 6f041a0d..6a3e6fe2 100644
  static void destroydecoration(struct wl_listener *listener, void *data);
  static void destroydragicon(struct wl_listener *listener, void *data);
  static void destroyidleinhibitor(struct wl_listener *listener, void *data);
-@@ -288,6 +293,13 @@ static Client *focustop(Monitor *m);
- static void fullscreennotify(struct wl_listener *listener, void *data);
+@@ -294,6 +299,13 @@ static void fullscreennotify(struct wl_listener *listener, void *data);
+ static void gpureset(struct wl_listener *listener, void *data);
  static void handlesig(int signo);
  static void incnmaster(const Arg *arg);
 +static void incgaps(const Arg *arg);
@@ -89,15 +89,15 @@ index 6f041a0d..6a3e6fe2 100644
  static void inputdevice(struct wl_listener *listener, void *data);
  static int keybinding(uint32_t mods, xkb_keysym_t sym);
  static void keypress(struct wl_listener *listener, void *data);
-@@ -322,6 +334,7 @@ static void setcursorshape(struct wl_listener *listener, void *data);
+@@ -327,6 +339,7 @@ static void setcursor(struct wl_listener *listener, void *data);
+ static void setcursorshape(struct wl_listener *listener, void *data);
  static void setfloating(Client *c, int floating);
  static void setfullscreen(Client *c, int fullscreen);
- static void setgamma(struct wl_listener *listener, void *data);
 +static void setgaps(int oh, int ov, int ih, int iv);
  static void setlayout(const Arg *arg);
  static void setmfact(const Arg *arg);
  static void setmon(Client *c, Monitor *m, uint32_t newtags);
-@@ -335,6 +348,7 @@ static void tagmon(const Arg *arg);
+@@ -340,6 +353,7 @@ static void tagmon(const Arg *arg);
  static void tile(Monitor *m);
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
@@ -105,7 +105,7 @@ index 6f041a0d..6a3e6fe2 100644
  static void toggletag(const Arg *arg);
  static void toggleview(const Arg *arg);
  static void unlocksession(struct wl_listener *listener, void *data);
-@@ -407,6 +421,8 @@ static struct wlr_box sgeom;
+@@ -411,6 +425,8 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
  
@@ -114,7 +114,7 @@ index 6f041a0d..6a3e6fe2 100644
  #ifdef XWAYLAND
  static void activatex11(struct wl_listener *listener, void *data);
  static void associatex11(struct wl_listener *listener, void *data);
-@@ -930,6 +946,11 @@ createmon(struct wl_listener *listener, void *data)
+@@ -985,6 +1001,11 @@ createmon(struct wl_listener *listener, void *data)
  	for (i = 0; i < LENGTH(m->layers); i++)
  		wl_list_init(&m->layers[i]);
  
@@ -126,7 +126,7 @@ index 6f041a0d..6a3e6fe2 100644
  	wlr_output_state_init(&state);
  	/* Initialize monitor state using configured rules */
  	m->tagset[0] = m->tagset[1] = 1;
-@@ -1131,6 +1152,12 @@ cursorwarptohint(void)
+@@ -1167,6 +1188,12 @@ cursorwarptohint(void)
  	}
  }
  
@@ -139,7 +139,7 @@ index 6f041a0d..6a3e6fe2 100644
  void
  destroydecoration(struct wl_listener *listener, void *data)
  {
-@@ -1460,6 +1487,83 @@ incnmaster(const Arg *arg)
+@@ -1520,6 +1547,83 @@ incnmaster(const Arg *arg)
  	arrange(selmon);
  }
  
@@ -223,8 +223,8 @@ index 6f041a0d..6a3e6fe2 100644
  void
  inputdevice(struct wl_listener *listener, void *data)
  {
-@@ -2256,6 +2360,16 @@ setgamma(struct wl_listener *listener, void *data)
- 	wlr_output_schedule_frame(m->wlr_output);
+@@ -2310,6 +2414,16 @@ setfullscreen(Client *c, int fullscreen)
+ 	printstatus();
  }
  
 +void
@@ -240,7 +240,7 @@ index 6f041a0d..6a3e6fe2 100644
  void
  setlayout(const Arg *arg)
  {
-@@ -2589,7 +2703,7 @@ tagmon(const Arg *arg)
+@@ -2651,7 +2765,7 @@ tagmon(const Arg *arg)
  void
  tile(Monitor *m)
  {
@@ -249,7 +249,7 @@ index 6f041a0d..6a3e6fe2 100644
  	int i, n = 0;
  	Client *c;
  
-@@ -2599,22 +2713,31 @@ tile(Monitor *m)
+@@ -2661,22 +2775,31 @@ tile(Monitor *m)
  	if (n == 0)
  		return;
  
@@ -258,8 +258,8 @@ index 6f041a0d..6a3e6fe2 100644
 +	}
 +
  	if (n > m->nmaster)
--		mw = m->nmaster ? ROUND(m->w.width * m->mfact) : 0;
-+		mw = m->nmaster ? ROUND((m->w.width + m->gappiv*ie) * m->mfact) : 0;
+-		mw = m->nmaster ? (int)roundf(m->w.width * m->mfact) : 0;
++		mw = m->nmaster ? (int)roundf((m->w.width + m->gappiv*ie) * m->mfact) : 0;
  	else
 -		mw = m->w.width;
 -	i = my = ty = 0;
@@ -290,7 +290,7 @@ index 6f041a0d..6a3e6fe2 100644
  		}
  		i++;
  	}
-@@ -2637,6 +2760,13 @@ togglefullscreen(const Arg *arg)
+@@ -2699,6 +2822,13 @@ togglefullscreen(const Arg *arg)
  		setfullscreen(sel, !sel->isfullscreen);
  }
  
@@ -305,10 +305,10 @@ index 6f041a0d..6a3e6fe2 100644
  toggletag(const Arg *arg)
  {
 -- 
-2.45.2
+2.46.0
 
 
-From d1c6fa3d9e6ca3ed55bf70c91f9da7b335312c6e Mon Sep 17 00:00:00 2001
+From 333bf3c468570468ec4525f28ba40a2d8b53ca6b Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
  <leohdz172@protonmail.com>
 Date: Wed, 20 Jul 2022 00:15:32 -0500
@@ -324,7 +324,7 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  2 files changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/config.def.h b/config.def.h
-index 6b04d9ff..395b28f4 100644
+index 39e528b1..f4d4095d 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -7,6 +7,7 @@
@@ -336,10 +336,10 @@ index 6b04d9ff..395b28f4 100644
  static const unsigned int gappih           = 10; /* horiz inner gap between windows */
  static const unsigned int gappiv           = 10; /* vert inner gap between windows */
 diff --git a/dwl.c b/dwl.c
-index 6a3e6fe2..4579a194 100644
+index 14e4627a..2428a6d1 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -1821,8 +1821,12 @@ monocle(Monitor *m)
+@@ -1877,8 +1877,12 @@ monocle(Monitor *m)
  	wl_list_for_each(c, &clients, link) {
  		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
  			continue;
@@ -354,5 +354,5 @@ index 6a3e6fe2..4579a194 100644
  	if (n)
  		snprintf(m->ltsymbol, LENGTH(m->ltsymbol), "[%d]", n);
 -- 
-2.45.2
+2.46.0
 
