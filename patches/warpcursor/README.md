@@ -11,5 +11,5 @@ config flag as I think it is unnecessary.
 - [v0.6](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/warpcursor/warpcursor.patch)
 
 ### Authors
-- [Faerryn](https://github.com/faerryn)
 - [Ben Collerson](https://codeberg.org/bencc)
+- [Faerryn](https://github.com/faerryn)
