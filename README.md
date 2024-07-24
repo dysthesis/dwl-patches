@@ -46,7 +46,7 @@ If you target the unstable `main` branch, specify that in the `Download` link on
     - [git branch](https://codeberg.org/USERNAME/dwl/src/branch/PATCHNAME)
     - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
                                                USE THE ^raw^ PATCH LINK HERE
-    ### Authors [Codeberg nick is mandatory; other contact methods optional]
+    ### Authors - latest at top [Codeberg nick is mandatory; other contact methods optional]
     - [YOUR_NICK](https://codeberg.org/USERNAME)
       your_email@if_you_wish_to.share.it
       your_irc_nick at [Libera IRC dwl channel](https://web.libera.chat/?channels=#dwl)
