@@ -7,7 +7,7 @@ the rules per all outputs, instead of one per output.
 This makes switching to tags from other monitors keep
 the window layout.
 
-This patch expects [singletagset](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/singletagset) and [sticky](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/sticky)
+This patch expects [singletagset](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/singletagset)
 patch to be already in your tree committed. It applies onto it.
 
 This patch is incompatible with [pertag](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/pertag).
