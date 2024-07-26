@@ -9,8 +9,10 @@ Originally based on the dwm single_tagset patch:
 https://dwm.suckless.org/patches/single_tagset/
 
 ### Download
-- [git branch](https://codeberg.org/bencc/dwl/src/branch/singletagset)
-- [2024-05-16](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/singletagset/singletagset.patch)
+- [git branch (v0.7)](https://codeberg.org/Rutherther/dwl/src/branch/v0.7/singletagset)
+- [git branch (v0.6)](https://codeberg.org/bencc/dwl/src/branch/singletagset)
+- [2024-07-26 (v0.7)](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/singletagset/singletagset-v0.7.patch)
+- [2024-05-16 (v0.6)](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/singletagset/singletagset-v0.6.patch)
 
 ### Authors
 - [Ben Collerson](https://codeberg.org/bencc)
