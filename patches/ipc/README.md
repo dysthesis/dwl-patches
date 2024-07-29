@@ -3,9 +3,12 @@ Largely based on [raphi](https://sr.ht/~raphi/)'s [somebar](https://sr.ht/~raphi
 
 Status information to stdout is currently disabled as dwl tends to freeze. For now, `dwlmsg -w` should act as a drop-in replacement.
 
+Note to [pertag](../pertag/) users: apply [this](./ipcpertag.patch) for ipc tagsetting to work as expected
+
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/ipc)
-- [2024-07-16](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch)
+- [2024-07-29](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch) don't focus other outputs (apply [this minipatch](./focus-tagset-output.patch) if you'd prefer that)
+- [2024-07-16](https://codeberg.org/dwl/dwl-patches/raw/commit/642b2559d522034785c1c1203c6d426855ec19ca/patches/ipc/ipc.patch)
 - [2024-06-30](https://codeberg.org/dwl/dwl-patches/raw/commit/9a751e5020133d3ab9219e68a43109c6f3c931a7/patches/ipc/ipc.patch)
 - [2024-06-21](https://codeberg.org/dwl/dwl-patches/raw/commit/f96ee44cbaef06bd38b8fa29ac7ecba8b1b5abd5/patches/ipc/ipc.patch)
 - [2024-06-19](https://codeberg.org/dwl/dwl-patches/raw/commit/e69afc7263b8d982a7923e5d4910f2e1f7140bb8/patches/ipc/ipc.patch)
