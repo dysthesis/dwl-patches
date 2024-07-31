@@ -23,10 +23,6 @@ If you target the unstable `main` branch, specify that in the `Download` link on
 ## Reporting Issues
 - Issues with existing patches can be generated here in the dwl-patches [issues]. Please be sure to "@" reference the patch author in your issue.
 
-## Creating Patches
-1. Create a [Codeberg] account and fork the [dwl] repository.
-2. Create a branch in your Codeberg `dwl` repository for the patch you are generating and maintaining.
-
 ## Contributing Patches to `dwl-patches`
 1. If you do not have it already, add the remote for the main dwl repository in your local copy and fetch it:
     `git remote add --fetch upstream https://codeberg.org/dwl/dwl`
@@ -43,9 +39,12 @@ If you target the unstable `main` branch, specify that in the `Download` link on
     Insert a short summary of changes that your patch implements.
 
     ### Download
-    - [git branch](https://codeberg.org/USERNAME/dwl/src/branch/PATCHNAME)
-    - [yyyy-mm-dd](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
-                                               USE THE ^raw^ PATCH LINK HERE
+    - [git branch](https://codeberg.org/USERNAME/dwl/src/branch/PATCHNAME) 
+	      ^ OPTIONAL: Patchers are no longer obligated to maintain public `dwl` branches devoted to their patches
+    - [dwl-branchname (like "0.7")](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
+                                                                USE THE ^raw^ PATCH LINK HERE
+	- [main YYYY-MM-DD](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
+	        ^ For patches targeting the unstable "main" branch, include a YYYY-MM-DD indicator
     ### Authors - latest at top [Codeberg nick is mandatory; other contact methods optional]
     - [YOUR_NICK](https://codeberg.org/USERNAME)
       your_email@if_you_wish_to.share.it
