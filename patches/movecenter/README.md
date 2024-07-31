@@ -1,6 +1,6 @@
 ### Description
 
-> This patch is no longer being maintained by me [wochap](https://codeberg.org/wochap), since I'm now using a different patch specific to my use case: https://codeberg.org/wochap/dwl/src/branch/v0.6-a/center/center.patch.
+> This patch is no longer being maintained by me [wochap](https://codeberg.org/wochap), since I'm now using a different patch specific to my use case: https://codeberg.org/wochap/dwl/src/branch/v0.6-c/betterfloat/betterfloat-diff.patch.
 
 This patch provides a keybinding to center the focused floating window.
 
