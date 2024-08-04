@@ -13,8 +13,8 @@ slstatus -s | dwl
 * pixman
 
 ### Download
-- [git branch](https://codeberg.org/sewn/dwl/src/branch/bar)
-- [2024-06-27](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/bar/bar.patch)
+- [0.7](/dwl/dwl-patches/raw/branch/main/patches/bar/bar-0.7.patch))
+- [0.6](/dwl/dwl-patches/raw/branch/main/patches/bar/bar-0.6.patch))
 
 Below is a preview of the patch.
 

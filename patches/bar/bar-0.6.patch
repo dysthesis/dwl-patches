@@ -1,62 +1,18 @@
-From 45e6f0f6d45342f41344ae035990306785175bed Mon Sep 17 00:00:00 2001
+From 54afee0f3023bddd8241f1edf7a9046bfc0e52ed Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Wed, 26 Jun 2024 23:07:14 +0300
+Date: Sun, 4 Aug 2024 23:22:22 +0300
 Subject: [PATCH] Implement dwm bar clone
 
 ---
- LICENSE      |   3 +-
- LICENSE.drwl |  21 +++
  Makefile     |   2 +-
  config.def.h |  31 ++--
- drwl.h       | 284 +++++++++++++++++++++++++++++++++++++
- dwl.c        | 391 ++++++++++++++++++++++++++++++++++++++++-----------
- 6 files changed, 641 insertions(+), 91 deletions(-)
- create mode 100644 LICENSE.drwl
+ drwl.h       | 308 +++++++++++++++++++++++++++++++++++++++
+ dwl.c        | 396 ++++++++++++++++++++++++++++++++++++++++-----------
+ 4 files changed, 642 insertions(+), 95 deletions(-)
  create mode 100644 drwl.h
 
-diff --git a/LICENSE b/LICENSE
-index 658085a..2c269b2 100644
---- a/LICENSE
-+++ b/LICENSE
-@@ -2,7 +2,8 @@ dwl - dwm for Wayland
- 
- Copyright © 2020 dwl team
- 
--See also the files LICENSE.tinywl, LICENSE.dwm and LICENSE.sway.
-+See also the files LICENSE.tinywl, LICENSE.dwm, LICENSE.sway, and
-+LICENSE.drwl.
- 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
-diff --git a/LICENSE.drwl b/LICENSE.drwl
-new file mode 100644
-index 0000000..4754b85
---- /dev/null
-+++ b/LICENSE.drwl
-@@ -0,0 +1,21 @@
-+Copyright (c) 2023-2024 sewn <sewn@disroot.org>
-+Copyright (c) 2015 Eric Pruitt <eric.pruitt@gmail.com>
-+
-+Permission is hereby granted, free of charge, to any person obtaining
-+a copy of this software and associated documentation files (the
-+"Software"), to deal in the Software without restriction, including
-+without limitation the rights to use, copy, modify, merge, publish,
-+distribute, sublicense, and/or sell copies of the Software, and to
-+permit persons to whom the Software is furnished to do so, subject to
-+the following conditions:
-+
-+The above copyright notice and this permission notice shall be
-+included in all copies or substantial portions of the Software.
-+
-+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 diff --git a/Makefile b/Makefile
-index 9308656..eb5c9d8 100644
+index 0d651e7..2a11396 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -12,7 +12,7 @@ DWLDEVCFLAGS = -g -pedantic -Wall -Wextra -Wdeclaration-after-statement \
@@ -66,10 +22,10 @@ index 9308656..eb5c9d8 100644
 -PKGS      = wlroots wayland-server xkbcommon libinput $(XLIBS)
 +PKGS      = wlroots wayland-server xkbcommon libinput pixman-1 fcft $(XLIBS)
  DWLCFLAGS = `$(PKG_CONFIG) --cflags $(PKGS)` $(DWLCPPFLAGS) $(DWLDEVCFLAGS) $(CFLAGS)
- LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
+ LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` -lm $(LIBS)
  
 diff --git a/config.def.h b/config.def.h
-index 646a3d6..6024b7e 100644
+index 22d2171..5d1dc2b 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -7,15 +7,21 @@
@@ -99,7 +55,7 @@ index 646a3d6..6024b7e 100644
  
  /* logging */
  static int log_level = WLR_ERROR;
-@@ -126,6 +132,7 @@ static const Key keys[] = {
+@@ -127,6 +133,7 @@ static const Key keys[] = {
  	/* modifier                  key                 function        argument */
  	{ MODKEY,                    XKB_KEY_p,          spawn,          {.v = menucmd} },
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,     spawn,          {.v = termcmd} },
@@ -107,7 +63,7 @@ index 646a3d6..6024b7e 100644
  	{ MODKEY,                    XKB_KEY_j,          focusstack,     {.i = +1} },
  	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
  	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
-@@ -169,7 +176,15 @@ static const Key keys[] = {
+@@ -170,7 +177,15 @@ static const Key keys[] = {
  };
  
  static const Button buttons[] = {
@@ -128,13 +84,38 @@ index 646a3d6..6024b7e 100644
  };
 diff --git a/drwl.h b/drwl.h
 new file mode 100644
-index 0000000..afcb2bd
+index 0000000..101a68b
 --- /dev/null
 +++ b/drwl.h
-@@ -0,0 +1,284 @@
+@@ -0,0 +1,308 @@
 +/*
 + * drwl - https://codeberg.org/sewn/drwl
-+ * See LICENSE.drwl file for copyright and license details.
++ *
++ * Copyright (c) 2023-2024 sewn <sewn@disroot.org>
++ * Copyright (c) 2024 notchoc <notchoc@disroot.org>
++ * 
++ * Permission is hereby granted, free of charge, to any person obtaining
++ * a copy of this software and associated documentation files (the
++ * "Software"), to deal in the Software without restriction, including
++ * without limitation the rights to use, copy, modify, merge, publish,
++ * distribute, sublicense, and/or sell copies of the Software, and to
++ * permit persons to whom the Software is furnished to do so, subject to
++ * the following conditions:
++ * 
++ * The above copyright notice and this permission notice shall be
++ * included in all copies or substantial portions of the Software.
++ * 
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
++ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
++ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
++ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * The UTF-8 Decoder included is from Bjoern Hoehrmann:
++ * Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de>
++ * See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details.
 + */
 +#pragma once
 +
@@ -142,56 +123,48 @@ index 0000000..afcb2bd
 +#include <fcft/fcft.h>
 +#include <pixman-1/pixman.h>
 +
-+#define BETWEEN(X, A, B) ((A) <= (X) && (X) <= (B))
-+
 +enum { ColFg, ColBg, ColBorder }; /* colorscheme index */
++
++typedef struct fcft_font Fnt;
 +
 +typedef struct {
 +	pixman_image_t *pix;
-+	struct fcft_font *font;
++	Fnt *font;
 +	uint32_t *scheme;
 +} Drwl;
 +
-+#define UTF_INVALID 0xFFFD
-+#define UTF_SIZ     4
++#define UTF8_ACCEPT 0
++#define UTF8_REJECT 12
++#define UTF8_INVALID 0xFFFD
 +
-+static const unsigned char utfbyte[UTF_SIZ + 1] = {0x80,    0, 0xC0, 0xE0, 0xF0};
-+static const unsigned char utfmask[UTF_SIZ + 1] = {0xC0, 0x80, 0xE0, 0xF0, 0xF8};
-+static const uint32_t utfmin[UTF_SIZ + 1] = {       0,    0,  0x80,  0x800,  0x10000};
-+static const uint32_t utfmax[UTF_SIZ + 1] = {0x10FFFF, 0x7F, 0x7FF, 0xFFFF, 0x10FFFF};
++static const uint8_t utf8d[] = {
++	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
++	 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
++	 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
++	 8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
++	10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
++
++	 0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
++	12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
++	12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
++	12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
++	12,36,12,12,12,12,12,12,12,12,12,12,
++};
 +
 +static inline uint32_t
-+utf8decodebyte(const char c, size_t *i)
++utf8decode(uint32_t *state, uint32_t *codep, uint8_t byte)
 +{
-+	for (*i = 0; *i < (UTF_SIZ + 1); ++(*i))
-+		if (((unsigned char)c & utfmask[*i]) == utfbyte[*i])
-+			return (unsigned char)c & ~utfmask[*i];
-+	return 0;
-+}
++	uint32_t type = utf8d[byte];
 +
-+static inline size_t
-+utf8decode(const char *c, uint32_t *u)
-+{
-+	size_t i, j, len, type;
-+	uint32_t udecoded;
++	*codep = (*state != UTF8_ACCEPT) ?
++		(byte & 0x3fu) | (*codep << 6) :
++		(0xff >> type) & (byte);
 +
-+	*u = UTF_INVALID;
-+	udecoded = utf8decodebyte(c[0], &len);
-+	if (!BETWEEN(len, 1, UTF_SIZ))
-+		return 1;
-+	for (i = 1, j = 1; i < UTF_SIZ && j < len; ++i, ++j) {
-+		udecoded = (udecoded << 6) | utf8decodebyte(c[i], &type);
-+		if (type)
-+			return j;
-+	}
-+	if (j < len)
-+		return 0;
-+	*u = udecoded;
-+	if (!BETWEEN(*u, utfmin[len], utfmax[len]) || BETWEEN(*u, 0xD800, 0xDFFF))
-+		*u = UTF_INVALID;
-+	for (i = 1; *u > utfmax[i]; ++i)
-+		;
-+	return len;
++	*state = utf8d[256 + *state + type];
++	return *state;
 +}
 +
 +static int
@@ -213,24 +186,24 @@ index 0000000..afcb2bd
 +}
 +
 +static void
-+drwl_setfont(Drwl *drwl, struct fcft_font *font)
++drwl_setfont(Drwl *drwl, Fnt *font)
 +{
 +	if (drwl)
 +		drwl->font = font;
 +}
 +
-+static struct fcft_font *
-+drwl_load_font(Drwl *drwl, size_t fontcount,
-+		const char *fonts[static fontcount], const char *attributes)
++static Fnt *
++drwl_font_create(Drwl *drwl, size_t count,
++		const char *names[static count], const char *attributes)
 +{
-+	struct fcft_font *font = fcft_from_name(fontcount, fonts, attributes);
++	Fnt *font = fcft_from_name(count, names, attributes);
 +	if (drwl)
 +		drwl_setfont(drwl, font);
 +	return font;
 +}
 +
 +static void
-+drwl_destroy_font(struct fcft_font *font)
++drwl_font_destroy(Fnt *font)
 +{
 +	fcft_destroy(font);
 +}
@@ -239,9 +212,9 @@ index 0000000..afcb2bd
 +convert_color(uint32_t clr)
 +{
 +	return (pixman_color_t){
-+		((clr >> 24) & 0xFF) * 0x101,
-+		((clr >> 16) & 0xFF) * 0x101,
-+		((clr >> 8) & 0xFF) * 0x101,
++		((clr >> 24) & 0xFF) * 0x101 * (clr & 0xFF) / 0xFF,
++		((clr >> 16) & 0xFF) * 0x101 * (clr & 0xFF) / 0xFF,
++		((clr >> 8) & 0xFF) * 0x101 * (clr & 0xFF) / 0xFF,
 +		(clr & 0xFF) * 0x101
 +	};
 +}
@@ -303,13 +276,13 @@ index 0000000..afcb2bd
 +		unsigned int lpad, const char *text, int invert)
 +{
 +	int ty;
-+	int utf8charlen, render = x || y || w || h;
++	int render = x || y || w || h;
 +	long x_kern;
-+	uint32_t cp = 0, last_cp = 0;
++	uint32_t cp = 0, last_cp = 0, state;
 +	pixman_color_t clr;
 +	pixman_image_t *fg_pix = NULL;
 +	int noellipsis = 0;
-+	const struct fcft_glyph *glyph, *eg;
++	const struct fcft_glyph *glyph, *eg = NULL;
 +	int fcft_subpixel_mode = FCFT_SUBPIXEL_DEFAULT;
 +
 +	if (!drwl || (render && (!drwl->scheme || !w || !drwl->pix)) || !text || !drwl->font)
@@ -330,11 +303,18 @@ index 0000000..afcb2bd
 +	if (render && (drwl->scheme[ColBg] & 0xFF) != 0xFF)
 +		fcft_subpixel_mode = FCFT_SUBPIXEL_NONE;
 +
-+	// U+2026 == …
-+	eg = fcft_rasterize_char_utf32(drwl->font, 0x2026, fcft_subpixel_mode);
++	if (render)
++		eg = fcft_rasterize_char_utf32(drwl->font, 0x2026 /* … */, fcft_subpixel_mode);
 +
-+	while (*text) {
-+		utf8charlen = utf8decode(text, &cp);
++	for (const char *p = text, *pp; pp = p, *p; p++) {
++		for (state = UTF8_ACCEPT; *p &&
++		     utf8decode(&state, &cp, *p) > UTF8_REJECT; p++)
++			;
++		if (!*p || state == UTF8_REJECT) {
++			cp = UTF8_INVALID;
++			if (p > pp)
++				p--;
++		}
 +
 +		glyph = fcft_rasterize_char_utf32(drwl->font, cp, fcft_subpixel_mode);
 +		if (!glyph)
@@ -347,10 +327,10 @@ index 0000000..afcb2bd
 +
 +		ty = y + (h - drwl->font->height) / 2 + drwl->font->ascent;
 +
-+		/* draw ellipsis if remaining text doesn't fit */
-+		if (!noellipsis && x_kern + glyph->advance.x + eg->advance.x > w && *(text + 1) != '\0') {
-+			if (drwl_text(drwl, 0, 0, 0, 0, 0, text, 0)
-+					- glyph->advance.x < eg->advance.x) {
++		if (render && !noellipsis && x_kern + glyph->advance.x + eg->advance.x > w &&
++		    *(p + 1) != '\0') {
++			/* cannot fit ellipsis after current codepoint */
++			if (drwl_text(drwl, 0, 0, 0, 0, 0, pp, 0) + x_kern <= w) {
 +				noellipsis = 1;
 +			} else {
 +				w -= eg->advance.x;
@@ -366,7 +346,7 @@ index 0000000..afcb2bd
 +		x += x_kern;
 +
 +		if (render && pixman_image_get_format(glyph->pix) == PIXMAN_a8r8g8b8)
-+			// pre-rendered glyphs (eg. emoji)
++			/* pre-rendered glyphs (eg. emoji) */
 +			pixman_image_composite32(
 +				PIXMAN_OP_OVER, glyph->pix, NULL, drwl->pix, 0, 0, 0, 0,
 +				x + glyph->x, ty - glyph->y, glyph->width, glyph->height);
@@ -375,7 +355,6 @@ index 0000000..afcb2bd
 +				PIXMAN_OP_OVER, fg_pix, glyph->pix, drwl->pix, 0, 0, 0, 0,
 +				x + glyph->x, ty - glyph->y, glyph->width, glyph->height);
 +
-+		text += utf8charlen;
 +		x += glyph->advance.x;
 +		w -= glyph->advance.x;
 +	}
@@ -397,17 +376,18 @@ index 0000000..afcb2bd
 +static void
 +drwl_finish_drawing(Drwl *drwl)
 +{
-+	if (drwl && drwl->pix)
++	if (!drwl)
++		return;
++	if (drwl->pix)
 +		pixman_image_unref(drwl->pix);
++	drwl->pix = NULL;
 +}
 +
 +static void
 +drwl_destroy(Drwl *drwl)
 +{
-+	if (drwl->pix)
-+		pixman_image_unref(drwl->pix);
 +	if (drwl->font)
-+		drwl_destroy_font(drwl->font);
++		drwl_font_destroy(drwl->font);
 +	free(drwl);
 +}
 +
@@ -417,18 +397,18 @@ index 0000000..afcb2bd
 +	fcft_fini();
 +}
 diff --git a/dwl.c b/dwl.c
-index 9fb50a7..9fdddc7 100644
+index 145fd01..69f06ca 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -4,6 +4,7 @@
- #include <getopt.h>
+@@ -5,6 +5,7 @@
  #include <libinput.h>
  #include <linux/input-event-codes.h>
+ #include <math.h>
 +#include <libdrm/drm_fourcc.h>
  #include <signal.h>
  #include <stdio.h>
  #include <stdlib.h>
-@@ -56,6 +57,7 @@
+@@ -57,6 +58,7 @@
  #include <wlr/types/wlr_xdg_decoration_v1.h>
  #include <wlr/types/wlr_xdg_output_v1.h>
  #include <wlr/types/wlr_xdg_shell.h>
@@ -436,7 +416,7 @@ index 9fb50a7..9fdddc7 100644
  #include <wlr/util/log.h>
  #include <wlr/util/region.h>
  #include <xkbcommon/xkbcommon.h>
-@@ -66,6 +68,7 @@
+@@ -67,6 +69,7 @@
  #endif
  
  #include "util.h"
@@ -444,7 +424,7 @@ index 9fb50a7..9fdddc7 100644
  
  /* macros */
  #define MAX(A, B)               ((A) > (B) ? (A) : (B))
-@@ -76,14 +79,17 @@
+@@ -75,14 +78,17 @@
  #define VISIBLEON(C, M)         ((M) && (C)->mon == (M) && ((C)->tags & (M)->tagset[(M)->seltags]))
  #define LENGTH(X)               (sizeof X / sizeof X[0])
  #define END(A)                  ((A) + LENGTH(A))
@@ -463,7 +443,7 @@ index 9fb50a7..9fdddc7 100644
  #ifdef XWAYLAND
  enum { NetWMWindowTypeDialog, NetWMWindowTypeSplash, NetWMWindowTypeToolbar,
  	NetWMWindowTypeUtility, NetLast }; /* EWMH atoms */
-@@ -97,6 +103,7 @@ typedef union {
+@@ -96,6 +102,7 @@ typedef union {
  } Arg;
  
  typedef struct {
@@ -471,7 +451,7 @@ index 9fb50a7..9fdddc7 100644
  	unsigned int mod;
  	unsigned int button;
  	void (*func)(const Arg *);
-@@ -191,6 +198,7 @@ struct Monitor {
+@@ -189,6 +196,7 @@ struct Monitor {
  	struct wl_list link;
  	struct wlr_output *wlr_output;
  	struct wlr_scene_output *scene_output;
@@ -479,7 +459,7 @@ index 9fb50a7..9fdddc7 100644
  	struct wlr_scene_rect *fullscreen_bg; /* See createmon() for info */
  	struct wl_listener frame;
  	struct wl_listener destroy;
-@@ -198,6 +206,11 @@ struct Monitor {
+@@ -196,6 +204,11 @@ struct Monitor {
  	struct wl_listener destroy_lock_surface;
  	struct wlr_session_lock_surface_v1 *lock_surface;
  	struct wlr_box m; /* monitor area, layout-relative */
@@ -491,11 +471,8 @@ index 9fb50a7..9fdddc7 100644
  	struct wlr_box w; /* window area, layout-relative */
  	struct wl_list layers[4]; /* LayerSurface.link */
  	const Layout *lt[2];
-@@ -207,10 +220,19 @@ struct Monitor {
- 	float mfact;
- 	int gamma_lut_changed;
+@@ -207,8 +220,16 @@ struct Monitor {
  	int nmaster;
-+	int showbar;
  	char ltsymbol[16];
  	int asleep;
 +	Drwl *drw;
@@ -511,7 +488,7 @@ index 9fb50a7..9fdddc7 100644
  typedef struct {
  	const char *name;
  	float mfact;
-@@ -251,6 +273,10 @@ static void arrangelayer(Monitor *m, struct wl_list *list,
+@@ -249,6 +270,10 @@ static void arrangelayer(Monitor *m, struct wl_list *list,
  		struct wlr_box *usable_area, int exclusive);
  static void arrangelayers(Monitor *m);
  static void axisnotify(struct wl_listener *listener, void *data);
@@ -522,7 +499,7 @@ index 9fb50a7..9fdddc7 100644
  static void buttonpress(struct wl_listener *listener, void *data);
  static void chvt(const Arg *arg);
  static void checkidleinhibitor(struct wlr_surface *exclude);
-@@ -284,6 +310,8 @@ static void destroysessionlock(struct wl_listener *listener, void *data);
+@@ -282,6 +307,8 @@ static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroysessionmgr(struct wl_listener *listener, void *data);
  static void destroykeyboardgroup(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
@@ -531,7 +508,7 @@ index 9fb50a7..9fdddc7 100644
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
  static void focusstack(const Arg *arg);
-@@ -312,7 +340,6 @@ static void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int
+@@ -309,7 +336,6 @@ static void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int
  static void outputmgrtest(struct wl_listener *listener, void *data);
  static void pointerfocus(Client *c, struct wlr_surface *surface,
  		double sx, double sy, uint32_t time);
@@ -539,7 +516,7 @@ index 9fb50a7..9fdddc7 100644
  static void powermgrsetmode(struct wl_listener *listener, void *data);
  static void quit(const Arg *arg);
  static void rendermon(struct wl_listener *listener, void *data);
-@@ -334,9 +361,11 @@ static void setsel(struct wl_listener *listener, void *data);
+@@ -331,9 +357,11 @@ static void setsel(struct wl_listener *listener, void *data);
  static void setup(void);
  static void spawn(const Arg *arg);
  static void startdrag(struct wl_listener *listener, void *data);
@@ -551,7 +528,7 @@ index 9fb50a7..9fdddc7 100644
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
  static void toggletag(const Arg *arg);
-@@ -345,6 +374,7 @@ static void unlocksession(struct wl_listener *listener, void *data);
+@@ -342,6 +370,7 @@ static void unlocksession(struct wl_listener *listener, void *data);
  static void unmaplayersurfacenotify(struct wl_listener *listener, void *data);
  static void unmapnotify(struct wl_listener *listener, void *data);
  static void updatemons(struct wl_listener *listener, void *data);
@@ -559,7 +536,7 @@ index 9fb50a7..9fdddc7 100644
  static void updatetitle(struct wl_listener *listener, void *data);
  static void urgent(struct wl_listener *listener, void *data);
  static void view(const Arg *arg);
-@@ -411,6 +441,15 @@ static struct wlr_box sgeom;
+@@ -408,6 +437,15 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
  
@@ -575,11 +552,11 @@ index 9fb50a7..9fdddc7 100644
  #ifdef XWAYLAND
  static void activatex11(struct wl_listener *listener, void *data);
  static void associatex11(struct wl_listener *listener, void *data);
-@@ -551,6 +590,11 @@ arrangelayers(Monitor *m)
+@@ -548,6 +586,11 @@ arrangelayers(Monitor *m)
  	if (!m->wlr_output->enabled)
  		return;
  
-+	if (m->showbar) {
++	if (m->scene_buffer->node.enabled) {
 +		usable_area.height -= m->b.real_height;
 +		usable_area.y += topbar ? m->b.real_height : 0;
 +	}
@@ -587,7 +564,7 @@ index 9fb50a7..9fdddc7 100644
  	/* Arrange exclusive surfaces from top->bottom */
  	for (i = 3; i >= 0; i--)
  		arrangelayer(m, &m->layers[i], &usable_area, 1);
-@@ -593,17 +637,82 @@ axisnotify(struct wl_listener *listener, void *data)
+@@ -590,17 +633,82 @@ axisnotify(struct wl_listener *listener, void *data)
  			event->delta_discrete, event->source);
  }
  
@@ -670,7 +647,7 @@ index 9fb50a7..9fdddc7 100644
  	switch (event->state) {
  	case WLR_BUTTON_PRESSED:
  		cursor_mode = CurPressed;
-@@ -612,15 +721,14 @@ buttonpress(struct wl_listener *listener, void *data)
+@@ -610,15 +718,14 @@ buttonpress(struct wl_listener *listener, void *data)
  
  		/* Change focus if the button was _pressed_ over a client */
  		xytonode(cursor->x, cursor->y, NULL, &c, NULL, NULL, NULL);
@@ -689,7 +666,7 @@ index 9fb50a7..9fdddc7 100644
  				return;
  			}
  		}
-@@ -691,6 +799,8 @@ cleanup(void)
+@@ -689,6 +796,8 @@ cleanup(void)
  	/* Destroy after the wayland display (when the monitors are already destroyed)
  	   to avoid destroying them with an invalid scene output. */
  	wlr_scene_node_destroy(&scene->tree.node);
@@ -698,7 +675,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -706,6 +816,8 @@ cleanupmon(struct wl_listener *listener, void *data)
+@@ -704,6 +813,8 @@ cleanupmon(struct wl_listener *listener, void *data)
  			wlr_layer_surface_v1_destroy(l->layer_surface);
  	}
  
@@ -707,7 +684,15 @@ index 9fb50a7..9fdddc7 100644
  	wl_list_remove(&m->destroy.link);
  	wl_list_remove(&m->frame.link);
  	wl_list_remove(&m->link);
-@@ -745,7 +857,7 @@ closemon(Monitor *m)
+@@ -714,6 +825,7 @@ cleanupmon(struct wl_listener *listener, void *data)
+ 
+ 	closemon(m);
+ 	wlr_scene_node_destroy(&m->fullscreen_bg->node);
++	wlr_scene_node_destroy(&m->scene_buffer->node);
+ 	free(m);
+ }
+ 
+@@ -743,7 +855,7 @@ closemon(Monitor *m)
  			setmon(c, selmon, c->tags);
  	}
  	focusclient(focustop(selmon), 1);
@@ -716,7 +701,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -970,8 +1082,16 @@ createmon(struct wl_listener *listener, void *data)
+@@ -980,8 +1092,15 @@ createmon(struct wl_listener *listener, void *data)
  	wlr_output_commit_state(wlr_output, &state);
  	wlr_output_state_finish(&state);
  
@@ -725,7 +710,6 @@ index 9fb50a7..9fdddc7 100644
 +
 +	m->scene_buffer = wlr_scene_buffer_create(layers[LyrBottom], NULL);
 +	m->scene_buffer->point_accepts_input = bar_accepts_input;
-+	m->showbar = showbar;
 +	updatebar(m);
 +
  	wl_list_insert(&mons, &m->link);
@@ -734,7 +718,7 @@ index 9fb50a7..9fdddc7 100644
  
  	/* The xdg-protocol specifies:
  	 *
-@@ -1303,6 +1423,89 @@ dirtomon(enum wlr_direction dir)
+@@ -1312,6 +1431,89 @@ dirtomon(enum wlr_direction dir)
  	return selmon;
  }
  
@@ -749,7 +733,7 @@ index 9fb50a7..9fdddc7 100644
 +	Client *c;
 +	Buffer *buf;
 +
-+	if (!m->showbar)
++	if (!m->scene_buffer->node.enabled)
 +		return;
 +
 +	stride = drwl_stride(m->b.width);
@@ -824,7 +808,7 @@ index 9fb50a7..9fdddc7 100644
  void
  focusclient(Client *c, int lift)
  {
-@@ -1338,13 +1541,13 @@ focusclient(Client *c, int lift)
+@@ -1347,13 +1549,13 @@ focusclient(Client *c, int lift)
  		/* Don't change border color if there is an exclusive focus or we are
  		 * handling a drag operation */
  		if (!exclusive_focus && !seat->drag)
@@ -840,7 +824,7 @@ index 9fb50a7..9fdddc7 100644
  		 * and focus it after the overlay is closed. */
  		if (old_client_type == LayerShell && wlr_scene_node_coords(
  					&old_l->scene->node, &unused_lx, &unused_ly)
-@@ -1355,12 +1558,11 @@ focusclient(Client *c, int lift)
+@@ -1364,12 +1566,11 @@ focusclient(Client *c, int lift)
  		/* Don't deactivate old client if the new one wants focus, as this causes issues with winecfg
  		 * and probably other clients */
  		} else if (old_c && !client_is_unmanaged(old_c) && (!c || !client_wants_focus(c))) {
@@ -855,7 +839,7 @@ index 9fb50a7..9fdddc7 100644
  
  	if (!c) {
  		/* With no client, all we have left is to clear focus */
-@@ -1664,7 +1866,7 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1666,7 +1867,7 @@ mapnotify(struct wl_listener *listener, void *data)
  
  	for (i = 0; i < 4; i++) {
  		c->border[i] = wlr_scene_rect_create(c->scene, 0, 0,
@@ -864,7 +848,7 @@ index 9fb50a7..9fdddc7 100644
  		c->border[i]->node.data = c;
  	}
  
-@@ -1687,7 +1889,7 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1689,7 +1890,7 @@ mapnotify(struct wl_listener *listener, void *data)
  	} else {
  		applyrules(c);
  	}
@@ -873,7 +857,7 @@ index 9fb50a7..9fdddc7 100644
  
  unset_fullscreen:
  	m = c->mon ? c->mon : xytomon(c->geom.x, c->geom.y);
-@@ -1980,46 +2182,6 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
+@@ -1982,46 +2183,6 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
  	wlr_seat_pointer_notify_motion(seat, time, sx, sy);
  }
  
@@ -920,7 +904,7 @@ index 9fb50a7..9fdddc7 100644
  
  void
  powermgrsetmode(struct wl_listener *listener, void *data)
-@@ -2173,24 +2335,16 @@ run(char *startup_cmd)
+@@ -2175,30 +2336,17 @@ run(char *startup_cmd)
  
  	/* Now that the socket exists and the backend is started, run the startup command */
  	if (startup_cmd) {
@@ -942,21 +926,27 @@ index 9fb50a7..9fdddc7 100644
 -		close(piperw[1]);
 -		close(piperw[0]);
  	}
+ 
+-	/* Mark stdout as non-blocking to avoid people who does not close stdin
+-	 * nor consumes it in their startup script getting dwl frozen */
+-	if (fd_set_nonblock(STDOUT_FILENO) < 0)
+-		close(STDOUT_FILENO);
+-
 -	printstatus();
 +	drawbars();
  
  	/* At this point the outputs are initialized, choose initial selmon based on
  	 * cursor position, and set default cursor image */
-@@ -2256,7 +2410,7 @@ setfloating(Client *c, int floating)
- 			(p && p->isfullscreen) ? LyrFS
- 			: c->isfloating ? LyrFloat : LyrTile]);
+@@ -2262,7 +2410,7 @@ setfloating(Client *c, int floating)
+ 	wlr_scene_node_reparent(&c->scene->node, layers[c->isfullscreen
+ 			? LyrFS : c->isfloating ? LyrFloat : LyrTile]);
  	arrange(c->mon);
 -	printstatus();
 +	drawbars();
  }
  
  void
-@@ -2279,7 +2433,7 @@ setfullscreen(Client *c, int fullscreen)
+@@ -2285,7 +2433,7 @@ setfullscreen(Client *c, int fullscreen)
  		resize(c, c->prev, 0);
  	}
  	arrange(c->mon);
@@ -965,7 +955,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2304,7 +2458,7 @@ setlayout(const Arg *arg)
+@@ -2310,7 +2458,7 @@ setlayout(const Arg *arg)
  		selmon->lt[selmon->sellt] = (Layout *)arg->v;
  	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, LENGTH(selmon->ltsymbol));
  	arrange(selmon);
@@ -974,7 +964,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  /* arg > 1.0 will set mfact absolutely */
-@@ -2377,6 +2531,7 @@ setup(void)
+@@ -2383,6 +2531,7 @@ setup(void)
  	for (i = 0; i < (int)LENGTH(sig); i++)
  		sigaction(sig[i], &sa, NULL);
  
@@ -982,7 +972,7 @@ index 9fb50a7..9fdddc7 100644
  	wlr_log_init(log_level, NULL);
  
  	/* The Wayland display is managed by libwayland. It handles accepting
-@@ -2563,6 +2718,11 @@ setup(void)
+@@ -2569,6 +2718,11 @@ setup(void)
  
  	wlr_scene_set_presentation(scene, wlr_presentation_create(dpy, backend));
  
@@ -994,7 +984,7 @@ index 9fb50a7..9fdddc7 100644
  	/* Make sure XWayland clients don't connect to the parent X server,
  	 * e.g when running in the x11 backend or the wayland backend and the
  	 * compositor has Xwayland support */
-@@ -2587,6 +2747,7 @@ void
+@@ -2593,6 +2747,7 @@ void
  spawn(const Arg *arg)
  {
  	if (fork() == 0) {
@@ -1002,7 +992,7 @@ index 9fb50a7..9fdddc7 100644
  		dup2(STDERR_FILENO, STDOUT_FILENO);
  		setsid();
  		execvp(((char **)arg->v)[0], (char **)arg->v);
-@@ -2605,6 +2766,30 @@ startdrag(struct wl_listener *listener, void *data)
+@@ -2611,6 +2766,30 @@ startdrag(struct wl_listener *listener, void *data)
  	LISTEN_STATIC(&drag->icon->events.destroy, destroydragicon);
  }
  
@@ -1033,7 +1023,7 @@ index 9fb50a7..9fdddc7 100644
  void
  tag(const Arg *arg)
  {
-@@ -2615,7 +2800,7 @@ tag(const Arg *arg)
+@@ -2621,7 +2800,7 @@ tag(const Arg *arg)
  	sel->tags = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -1042,22 +1032,22 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2660,6 +2845,14 @@ tile(Monitor *m)
+@@ -2666,6 +2845,14 @@ tile(Monitor *m)
  	}
  }
  
 +void
 +togglebar(const Arg *arg)
 +{
-+	selmon->showbar = !selmon->showbar;
-+	wlr_scene_node_set_enabled(&selmon->scene_buffer->node, selmon->showbar);
++	wlr_scene_node_set_enabled(&selmon->scene_buffer->node,
++		!selmon->scene_buffer->node.enabled);
 +	arrangelayers(selmon);
 +}
 +
  void
  togglefloating(const Arg *arg)
  {
-@@ -2688,7 +2881,7 @@ toggletag(const Arg *arg)
+@@ -2694,7 +2881,7 @@ toggletag(const Arg *arg)
  	sel->tags = newtags;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -1066,7 +1056,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2701,7 +2894,7 @@ toggleview(const Arg *arg)
+@@ -2707,7 +2894,7 @@ toggleview(const Arg *arg)
  	selmon->tagset[selmon->seltags] = newtagset;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -1075,7 +1065,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2749,7 +2942,7 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2755,7 +2942,7 @@ unmapnotify(struct wl_listener *listener, void *data)
  	}
  
  	wlr_scene_node_destroy(&c->scene->node);
@@ -1084,11 +1074,10 @@ index 9fb50a7..9fdddc7 100644
  	motionnotify(0, NULL, 0, 0, 0, 0);
  }
  
-@@ -2849,6 +3042,14 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2855,6 +3042,13 @@ updatemons(struct wl_listener *listener, void *data)
  		}
  	}
  
-+	/* Update bar */
 +	if (stext[0] == '\0')
 +		strncpy(stext, "dwl-"VERSION, sizeof(stext));
 +	wl_list_for_each(m, &mons, link) {
@@ -1099,7 +1088,7 @@ index 9fb50a7..9fdddc7 100644
  	/* FIXME: figure out why the cursor image is at 0,0 after turning all
  	 * the monitors on.
  	 * Move the cursor image where it used to be. It does not generate a
-@@ -2859,12 +3060,36 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -2865,12 +3059,38 @@ updatemons(struct wl_listener *listener, void *data)
  	wlr_output_manager_v1_set_configuration(output_mgr, config);
  }
  
@@ -1113,12 +1102,14 @@ index 9fb50a7..9fdddc7 100644
 +	m->b.width = rw;
 +	m->b.real_width = (int)((float)m->b.width / m->wlr_output->scale);
 +
++	wlr_scene_node_set_enabled(&m->scene_buffer->node, m->wlr_output->enabled ? showbar : 0);
++
 +	if (m->b.scale == m->wlr_output->scale && m->drw)
 +		return;
 +
-+	drwl_destroy_font(m->drw->font);
++	drwl_font_destroy(m->drw->font);
 +	snprintf(fontattrs, sizeof(fontattrs), "dpi=%.2f", 96. * m->wlr_output->scale);
-+	if (!(drwl_load_font(m->drw, LENGTH(fonts), fonts, fontattrs)))
++	if (!(drwl_font_create(m->drw, LENGTH(fonts), fonts, fontattrs)))
 +		die("Could not load font");
 +
 +	m->b.scale = m->wlr_output->scale;
@@ -1137,7 +1128,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2877,10 +3102,10 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2883,10 +3103,10 @@ urgent(struct wl_listener *listener, void *data)
  		return;
  
  	c->isurgent = 1;
@@ -1150,7 +1141,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2893,7 +3118,7 @@ view(const Arg *arg)
+@@ -2899,7 +3119,7 @@ view(const Arg *arg)
  		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
@@ -1159,7 +1150,7 @@ index 9fb50a7..9fdddc7 100644
  }
  
  void
-@@ -2934,6 +3159,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2940,6 +3160,7 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  {
  	struct wlr_scene_node *node, *pnode;
  	struct wlr_surface *surface = NULL;
@@ -1167,7 +1158,7 @@ index 9fb50a7..9fdddc7 100644
  	Client *c = NULL;
  	LayerSurface *l = NULL;
  	int layer;
-@@ -2942,9 +3168,12 @@ xytonode(double x, double y, struct wlr_surface **psurface,
+@@ -2948,9 +3169,12 @@ xytonode(double x, double y, struct wlr_surface **psurface,
  		if (!(node = wlr_scene_node_at(&layers[layer]->node, x, y, nx, ny)))
  			continue;
  
@@ -1183,7 +1174,7 @@ index 9fb50a7..9fdddc7 100644
  		/* Walk the tree to find a node that knows the client */
  		for (pnode = node; pnode && !c; pnode = &pnode->parent->node)
  			c = pnode->data;
-@@ -3083,10 +3312,10 @@ sethints(struct wl_listener *listener, void *data)
+@@ -3089,10 +3313,10 @@ sethints(struct wl_listener *listener, void *data)
  		return;
  
  	c->isurgent = xcb_icccm_wm_hints_get_urgency(c->surface.xwayland->hints);
@@ -1197,5 +1188,5 @@ index 9fb50a7..9fdddc7 100644
  
  void
 -- 
-2.45.2
+2.46.0
 
