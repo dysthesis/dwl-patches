@@ -3,7 +3,7 @@ Hide the mouse cursor if it isn't being used for a certain period of time.
 
 ### Download
 - [git branch](https://codeberg.org/guidocella/dwl/src/branch/unclutter)
-- [2024-07-25](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/unclutter/unclutter.patch)
+- [2024-08-06](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/unclutter/unclutter.patch)
 
 ### Authors
 - [Guido Cella](https://github.com/guidocella)
