@@ -9,10 +9,9 @@ static const ForceTearingRule force_tearing[] = {
 	{.title = "", .appid = "hl_linux"},
 	{.title = "", .appid = "steam_app_210970"},
 };
-
 ```
 ### Download
 - [git branch](https://codeberg.org/korei999/dwl/src/branch/tearing)
-- [2024-06-08](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/tearing/tearing.patch)
+- [2024-08-07](https://codeberg.org/dwl/dwl-patches/src/branch/main/patches/tearing/tearing.patch)
 ### Authors
 - [korei999](https://codeberg.org/korei999)
