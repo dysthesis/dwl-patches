@@ -1,12 +1,12 @@
-From 64ef30f1970de25542dfcf1ed617d354558c69eb Mon Sep 17 00:00:00 2001
+From eb0c6ff53ba823f26d13f18627a084959c353627 Mon Sep 17 00:00:00 2001
 From: moe <moemmakki@gmail.com>
-Date: Sat, 13 Jul 2024 13:02:34 -0400
-Subject: [PATCH] init mastercolumn
+Date: Sat, 10 Aug 2024 15:58:15 -0400
+Subject: [PATCH] add mastercolumn layout
 
 ---
  config.def.h |  2 ++
- dwl.c        | 35 +++++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ dwl.c        | 36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
 diff --git a/config.def.h b/config.def.h
 index 22d2171..68b27a7 100644
@@ -29,10 +29,10 @@ index 22d2171..68b27a7 100644
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
  	{ MODKEY,                    XKB_KEY_e,         togglefullscreen, {0} },
 diff --git a/dwl.c b/dwl.c
-index dc0437e..9e345d6 100644
+index a2711f6..49f65ba 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -297,6 +297,7 @@ static int keyrepeat(void *data);
+@@ -301,6 +301,7 @@ static int keyrepeat(void *data);
  static void killclient(const Arg *arg);
  static void locksession(struct wl_listener *listener, void *data);
  static void mapnotify(struct wl_listener *listener, void *data);
@@ -40,7 +40,7 @@ index dc0437e..9e345d6 100644
  static void maximizenotify(struct wl_listener *listener, void *data);
  static void monocle(Monitor *m);
  static void motionabsolute(struct wl_listener *listener, void *data);
-@@ -1700,6 +1701,40 @@ unset_fullscreen:
+@@ -1748,6 +1749,41 @@ unset_fullscreen:
  	}
  }
  
@@ -78,9 +78,10 @@ index dc0437e..9e345d6 100644
 +	}
 +}
 +
++
  void
  maximizenotify(struct wl_listener *listener, void *data)
  {
 -- 
-2.45.2
+2.46.0
 
