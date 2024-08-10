@@ -59,7 +59,7 @@ If you target the unstable `main` branch, specify that in the `Download` link on
 ## Updating/Modifying Existing Patches
 - If the existing patch is already being maintained by another author, do not make modifications to it without permission.
 - Create an issue at [issues] @mentioning the current maintainer
-- If you receive no reply for seven days, you may adopt the patch. If you are adopting the patch, you need to maintain a `dwl` branch in your Codeberg repository.
+- If you receive no reply for seven days, you may adopt the patch.
 - Modify the `README.md` with new links for your raw patch and for your git branch.
     - **LEAVE PREVIOUS AUTHOR(S)' NICKS/LINKS INTACT UNDER THE "Authors" HEADING!**
     - Add your own nick/link to the top of the "Authors" list.
