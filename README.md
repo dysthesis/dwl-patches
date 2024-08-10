@@ -40,11 +40,12 @@ If you target the unstable `main` branch, specify that in the `Download` link on
 
     ### Download
     - [git branch](/USERNAME/dwl/src/branch/PATCHNAME) 
-	      ^ OPTIONAL: Patchers are no longer obligated to maintain public `dwl` branches devoted to their patches
-    - [dwl-branchname (like "0.7")](/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
-                                            USE THE ^raw^ PATCH LINK HERE
+	   ^^^^^^^^^^ OPTIONAL: Patchers are no longer obligated to maintain public `dwl` branches devoted to their patches
+    - [0.7](/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
+                    Use the ^RAW^ patch link here
+	   ^^^ "0.7" is an example. Use the release that your patch targets
 	- [main YYYY-MM-DD](/dwl/dwl-patches/raw/branch/main/patches/PATCHNAME/PATCHNAME.patch)
-	        ^ For patches targeting the unstable "main" branch, include a YYYY-MM-DD indicator
+	        ^^^^^^^^^^ Patches targeting the unstable "main" branch include a YYYY-MM-DD indicator
     ### Authors - latest at top [Codeberg nick is mandatory; other contact methods optional]
     - [YOUR_NICK](https://codeberg.org/USERNAME)
       your_email@if_you_wish_to.share.it
