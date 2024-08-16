@@ -7,7 +7,8 @@ Note to [pertag](../pertag/) users: apply [this](./ipcpertag.patch) for ipc tags
 
 ### Download
 - [git branch](https://codeberg.org/notchoc/dwl/src/branch/ipc)
-- [2024-07-29](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch) don't focus other outputs (apply [this minipatch](./focus-tagset-output.patch) if you'd prefer that)
+- [2024-08-16](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/ipc/ipc.patch)
+- [2024-07-29](https://codeberg.org/dwl/dwl-patches/raw/commit/d235f0f88ed069eca234da5a544fb1c6e19f1d33/patches/ipc/ipc.patch) don't focus other outputs (apply [this minipatch](./focus-tagset-output.patch) if you'd prefer that)
 - [2024-07-16](https://codeberg.org/dwl/dwl-patches/raw/commit/642b2559d522034785c1c1203c6d426855ec19ca/patches/ipc/ipc.patch)
 - [2024-06-30](https://codeberg.org/dwl/dwl-patches/raw/commit/9a751e5020133d3ab9219e68a43109c6f3c931a7/patches/ipc/ipc.patch)
 - [2024-06-21](https://codeberg.org/dwl/dwl-patches/raw/commit/f96ee44cbaef06bd38b8fa29ac7ecba8b1b5abd5/patches/ipc/ipc.patch)
