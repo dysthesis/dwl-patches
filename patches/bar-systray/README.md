@@ -24,8 +24,8 @@ directories. One possible way to do that:
 3. Finally, from dwl root, run `make`.
 
 ### Download
-- [git branch](https://codeberg.org/janetski/dwl/src/branch/0.7-systray)
-- [0.7](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/bar-systray/bar-systray-0.7.patch)
+- [git branch](/janetski/dwl/src/branch/0.7-systray)
+- [0.7](/dwl/dwl-patches/raw/branch/main/patches/bar-systray/bar-systray-0.7.patch)
 
 ### Authors
 - [janetski](https://codeberg.org/janetski) ([.vetu](https://discordapp.com/users/355488216469471242) on discord)

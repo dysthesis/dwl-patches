@@ -1,15 +1,15 @@
-From 47ccbbe022e0639b5eb5ccedc805a91c19d74033 Mon Sep 17 00:00:00 2001
+From 71f7b97dca2d781668e826aae7e06544958534f6 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Janne=20Vetel=C3=A4inen?= <janne.vetelainen@elisanet.fi>
-Date: Fri, 9 Aug 2024 16:25:35 +0300
+Date: Fri, 23 Aug 2024 18:39:17 +0300
 Subject: [PATCH 1/1] Add a system tray next to the sewn's bar
 
 ---
  Makefile           |   8 +-
  config.def.h       |   2 +
- dwl.c              | 223 ++++++++++++++++++++++++++++++++++++++++++++-
+ dwl.c              | 222 ++++++++++++++++++++++++++++++++++++++++++++-
  include/.gitignore |   1 +
  lib/.gitignore     |   1 +
- 5 files changed, 226 insertions(+), 9 deletions(-)
+ 5 files changed, 225 insertions(+), 9 deletions(-)
  create mode 100644 include/.gitignore
  create mode 100644 lib/.gitignore
 
@@ -50,7 +50,7 @@ index 5d1dc2b..bb9366f 100644
  static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
  static uint32_t colors[][3]                = {
 diff --git a/dwl.c b/dwl.c
-index 9a6ff48..a8f332a 100644
+index ece537a..24f550a 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -72,9 +72,22 @@
@@ -76,7 +76,7 @@ index 9a6ff48..a8f332a 100644
  #define CLEANMASK(mask)         (mask & ~WLR_MODIFIER_CAPS)
  #define VISIBLEON(C, M)         ((M) && (C)->mon == (M) && ((C)->tags & (M)->tagset[(M)->seltags]))
  #define LENGTH(X)               (sizeof X / sizeof X[0])
-@@ -318,6 +331,15 @@ static void focusstack(const Arg *arg);
+@@ -324,6 +337,15 @@ static void focusstack(const Arg *arg);
  static Client *focustop(Monitor *m);
  static void fullscreennotify(struct wl_listener *listener, void *data);
  static void gpureset(struct wl_listener *listener, void *data);
@@ -92,7 +92,7 @@ index 9a6ff48..a8f332a 100644
  static void handlesig(int signo);
  static void incnmaster(const Arg *arg);
  static void inputdevice(struct wl_listener *listener, void *data);
-@@ -374,7 +396,7 @@ static void unlocksession(struct wl_listener *listener, void *data);
+@@ -380,7 +402,7 @@ static void unlocksession(struct wl_listener *listener, void *data);
  static void unmaplayersurfacenotify(struct wl_listener *listener, void *data);
  static void unmapnotify(struct wl_listener *listener, void *data);
  static void updatemons(struct wl_listener *listener, void *data);
@@ -101,7 +101,7 @@ index 9a6ff48..a8f332a 100644
  static void updatetitle(struct wl_listener *listener, void *data);
  static void urgent(struct wl_listener *listener, void *data);
  static void view(const Arg *arg);
-@@ -388,6 +410,8 @@ static void zoom(const Arg *arg);
+@@ -394,6 +416,8 @@ static void zoom(const Arg *arg);
  /* variables */
  static const char broken[] = "broken";
  static pid_t child_pid = -1;
@@ -110,34 +110,33 @@ index 9a6ff48..a8f332a 100644
  static int locked;
  static void *exclusive_focus;
  static struct wl_display *dpy;
-@@ -1139,7 +1163,7 @@ createmon(struct wl_listener *listener, void *data)
+@@ -1187,7 +1211,7 @@ createmon(struct wl_listener *listener, void *data)
  
  	m->scene_buffer = wlr_scene_buffer_create(layers[LyrBottom], NULL);
- 	m->scene_buffer->point_accepts_input = bar_accepts_input;
+ 	m->scene_buffer->point_accepts_input = baracceptsinput;
 -	updatebar(m);
 +	updatebar(m, 0);
  
  	wl_list_insert(&mons, &m->link);
  	drawbars();
-@@ -1469,6 +1493,8 @@ drawbar(Monitor *m)
- 	if (!m->scene_buffer->node.enabled)
+@@ -1518,6 +1542,8 @@ drawbar(Monitor *m)
+ 	if (!(buf = bufmon(m)))
  		return;
  
 +	pthread_mutex_lock(&mutex);
 +
- 	stride = drwl_stride(m->b.width);
- 	size = stride * m->b.height;
- 
-@@ -1527,6 +1553,8 @@ drawbar(Monitor *m)
+ 	/* draw status first so it can be overdrawn by tags later */
+ 	if (m == selmon) { /* status is only drawn on selected monitor */
+ 		drwl_setscheme(m->drw, colors[SchemeNorm]);
+@@ -1566,6 +1592,7 @@ drawbar(Monitor *m)
  		m->m.y + (topbar ? 0 : m->m.height - m->b.real_height));
  	wlr_scene_buffer_set_buffer(m->scene_buffer, &buf->base);
- 	wlr_buffer_drop(&buf->base);
-+
+ 	wlr_buffer_unlock(&buf->base);
 +	pthread_mutex_unlock(&mutex);
  }
  
  void
-@@ -1671,6 +1699,174 @@ fullscreennotify(struct wl_listener *listener, void *data)
+@@ -1710,6 +1737,174 @@ fullscreennotify(struct wl_listener *listener, void *data)
  	setfullscreen(c, client_wants_fullscreen(c));
  }
  
@@ -312,7 +311,7 @@ index 9a6ff48..a8f332a 100644
  void
  gpureset(struct wl_listener *listener, void *data)
  {
-@@ -2254,6 +2450,8 @@ powermgrsetmode(struct wl_listener *listener, void *data)
+@@ -2293,6 +2488,8 @@ powermgrsetmode(struct wl_listener *listener, void *data)
  void
  quit(const Arg *arg)
  {
@@ -321,7 +320,7 @@ index 9a6ff48..a8f332a 100644
  	wl_display_terminate(dpy);
  }
  
-@@ -2797,6 +2995,9 @@ setup(void)
+@@ -2836,6 +3033,9 @@ setup(void)
  		fprintf(stderr, "failed to setup XWayland X server, continuing without it\n");
  	}
  #endif
@@ -331,7 +330,7 @@ index 9a6ff48..a8f332a 100644
  }
  
  void
-@@ -2904,9 +3105,21 @@ tile(Monitor *m)
+@@ -2943,9 +3143,21 @@ tile(Monitor *m)
  void
  togglebar(const Arg *arg)
  {
@@ -353,7 +352,7 @@ index 9a6ff48..a8f332a 100644
  }
  
  void
-@@ -3101,7 +3314,7 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -3140,7 +3352,7 @@ updatemons(struct wl_listener *listener, void *data)
  	if (stext[0] == '\0')
  		strncpy(stext, "dwl-"VERSION, sizeof(stext));
  	wl_list_for_each(m, &mons, link) {
@@ -362,15 +361,16 @@ index 9a6ff48..a8f332a 100644
  		drawbar(m);
  	}
  
-@@ -3116,14 +3329,14 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -3155,7 +3367,7 @@ updatemons(struct wl_listener *listener, void *data)
  }
  
  void
 -updatebar(Monitor *m)
 +updatebar(Monitor *m, int traywidth)
  {
+ 	size_t i;
  	int rw, rh;
- 	char fontattrs[12];
+@@ -3163,7 +3375,7 @@ updatebar(Monitor *m)
  
  	wlr_output_transformed_resolution(m->wlr_output, &rw, &rh);
  	m->b.width = rw;
