@@ -1,12 +1,12 @@
-From e817d93091258fbf338f7db6c2a0864a99ac643c Mon Sep 17 00:00:00 2001
+From 7d95ce0fba8f172748bbd71b4c03ce12acd54eea Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Mon, 10 Jun 2024 14:59:12 +0300
+Date: Fri, 23 Aug 2024 14:11:37 +0300
 Subject: [PATCH] add border to bar
 
 ---
  config.def.h |  3 ++-
- dwl.c        | 31 +++++++++++++++++++------------
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ dwl.c        | 32 +++++++++++++++++++-------------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index 5d1dc2b..4763482 100644
@@ -30,7 +30,7 @@ index 5d1dc2b..4763482 100644
  
  /* tagging - TAGCOUNT must be no greater than 31 */
 diff --git a/dwl.c b/dwl.c
-index 8614fdd..296e926 100644
+index ece537a..c637da4 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -85,7 +85,7 @@
@@ -42,31 +42,35 @@ index 8614fdd..296e926 100644
  enum { CurNormal, CurPressed, CurMove, CurResize }; /* cursor */
  enum { XDGShell, LayerShell, X11 }; /* client types */
  enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
-@@ -1458,7 +1458,8 @@ dirtomon(enum wlr_direction dir)
+@@ -750,7 +750,7 @@ buttonpress(struct wl_listener *listener, void *data)
+ 		if (!c && !exclusive_focus &&
+ 			(node = wlr_scene_node_at(&layers[LyrBottom]->node, cursor->x, cursor->y, NULL, NULL)) &&
+ 			(buffer = wlr_scene_buffer_from_node(node)) && buffer == selmon->scene_buffer) {
+-			cx = (cursor->x - selmon->m.x) * selmon->wlr_output->scale;
++			cx = (cursor->x - selmon->m.x - borderpx) * selmon->wlr_output->scale;
+ 			do
+ 				x += TEXTW(selmon, tags[i]);
+ 			while (cx >= x && ++i < LENGTH(tags));
+@@ -1506,10 +1506,12 @@ dirtomon(enum wlr_direction dir)
  void
  drawbar(Monitor *m)
  {
 -	int x, w, tw = 0;
 +	int x, y = borderpx, w, tw = 0;
-+	int mh, mw;
++	int mh = m->b.height - borderpx * 2, mw = m->b.width - borderpx * 2;
  	int boxs = m->drw->font->height / 9;
  	int boxw = m->drw->font->height / 6 + 2;
  	uint32_t i, occ = 0, urg = 0;
-@@ -1469,6 +1470,8 @@ drawbar(Monitor *m)
- 	if (!m->scene_buffer->node.enabled)
++	uint32_t borderscm[] = { colors[SchemeBar][ColBorder] };
+ 	Client *c;
+ 	Buffer *buf;
+ 
+@@ -1518,11 +1520,15 @@ drawbar(Monitor *m)
+ 	if (!(buf = bufmon(m)))
  		return;
  
-+	mh = m->b.height - borderpx * 2;
-+	mw = m->b.width - borderpx * 2;
- 	stride = drwl_stride(m->b.width);
- 	size = stride * m->b.height;
- 
-@@ -1478,11 +1481,15 @@ drawbar(Monitor *m)
- 
- 	drwl_prepare_drawing(m->drw, m->b.width, m->b.height, buf->data, stride);
- 
-+	drwl_setscheme(m->drw, colors[SchemeBar]);
-+	drwl_rect(m->drw, 0, 0, m->b.width, m->b.height, 1, 1);
++	drwl_setscheme(m->drw, borderscm);
++	drwl_rect(m->drw, 0, 0, m->b.width, m->b.height, 1, 0);
 +	drwl_setscheme(m->drw, colors[SchemeNorm]);
 +
  	/* draw status first so it can be overdrawn by tags later */
@@ -78,7 +82,7 @@ index 8614fdd..296e926 100644
  	}
  
  	wl_list_for_each(c, &clients, link) {
-@@ -1492,31 +1499,31 @@ drawbar(Monitor *m)
+@@ -1532,31 +1538,31 @@ drawbar(Monitor *m)
  		if (c->isurgent)
  			urg |= c->tags;
  	}
@@ -118,7 +122,7 @@ index 8614fdd..296e926 100644
  		}
  	}
  
-@@ -3137,7 +3144,7 @@ updatebar(Monitor *m)
+@@ -3183,7 +3189,7 @@ updatebar(Monitor *m)
  
  	m->b.scale = m->wlr_output->scale;
  	m->lrpad = m->drw->font->height;
