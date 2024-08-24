@@ -5,12 +5,12 @@ For gaps, apply `mastercolumn-gaps.patch` on top of `mastercolumn.patch` and `ga
 
 ### Download
 ##### `mastercolumn.patch`
-- [git branch](/dsst/dwl/src/branch/mastercolumn)
+- [git branch](/shivers/dwl/src/branch/mastercolumn)
 - [0.7](/dwl/dwl-patches/raw/branch/main/patches/mastercolumn/mastercolumn.patch)
 
 ##### `mastercolumn-gaps.patch`
-- [git branch](/dsst/dwl/src/branch/mastercolumn-gaps)
+- [git branch](/shivers/dwl/src/branch/mastercolumn-gaps)
 - [0.7](/dwl/dwl-patches/raw/branch/main/patches/mastercolumn/mastercolumn-gaps.patch)
 
 ### Authors
-- [dsst](https://codeberg.org/dsst)
+- [shivers](https://codeberg.org/shivers)
