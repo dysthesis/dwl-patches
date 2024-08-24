@@ -8,3 +8,4 @@ Adds the ability to change the [bar's](https://codeberg.org/dwl/dwl-patches/wiki
 
 ### Authors
 - [Oak](https://codeberg.org/oak)
+
