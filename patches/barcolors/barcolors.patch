@@ -1,17 +1,17 @@
-From 48802fb29c352edcf77e7c85dca1eed872ccb62a Mon Sep 17 00:00:00 2001
+From 16f4f7cdc4ca9253a5bf97ee0e2ce5afd666fbbb Mon Sep 17 00:00:00 2001
 From: Kerberoge <sjoerdenjh@gmail.com>
-Date: Tue, 6 Aug 2024 14:22:23 +0200
-Subject: [PATCH 1/1] Updated barcolors patch
+Date: Sun, 25 Aug 2024 22:41:55 +0200
+Subject: [PATCH 1/1] applied barcolors patch
 
 ---
  dwl.c | 89 +++++++++++++++++++++++++++++++++++++++++++++++++++++++----
  1 file changed, 83 insertions(+), 6 deletions(-)
 
 diff --git a/dwl.c b/dwl.c
-index 8614fdd..551bdcf 100644
+index ece537a..50d6ead 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -312,6 +312,7 @@ static void destroykeyboardgroup(struct wl_listener *listener, void *data);
+@@ -318,6 +318,7 @@ static void destroykeyboardgroup(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
  static void drawbar(Monitor *m);
  static void drawbars(void);
@@ -19,7 +19,7 @@ index 8614fdd..551bdcf 100644
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
  static void focusstack(const Arg *arg);
-@@ -442,7 +443,7 @@ static struct wlr_box sgeom;
+@@ -448,7 +449,7 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
  
@@ -28,8 +28,8 @@ index 8614fdd..551bdcf 100644
  static struct wl_event_source *status_event_source;
  
  static const struct wlr_buffer_impl buffer_impl = {
-@@ -1479,11 +1480,8 @@ drawbar(Monitor *m)
- 	drwl_prepare_drawing(m->drw, m->b.width, m->b.height, buf->data, stride);
+@@ -1519,11 +1520,8 @@ drawbar(Monitor *m)
+ 		return;
  
  	/* draw status first so it can be overdrawn by tags later */
 -	if (m == selmon) { /* status is only drawn on selected monitor */
@@ -42,7 +42,7 @@ index 8614fdd..551bdcf 100644
  
  	wl_list_for_each(c, &clients, link) {
  		if (c->mon != m)
-@@ -1538,6 +1536,85 @@ drawbars(void)
+@@ -1577,6 +1575,85 @@ drawbars(void)
  		drawbar(m);
  }
  
