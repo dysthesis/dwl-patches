@@ -10,7 +10,7 @@ meson setup -Dwlroots:xwayland=enabled build
 
 ### Download
 - [git branch](/sewn/dwl/src/branch/meson)
-- [2024-08-06](/dwl/dwl-patches/raw/branch/main/patches/meson/meson.patch)
+- [2024-08-27](/dwl/dwl-patches/raw/branch/main/patches/meson/meson.patch)
 
 ### Authors
 - [sewn](/sewn)
