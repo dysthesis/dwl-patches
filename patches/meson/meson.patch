@@ -1,13 +1,13 @@
-From 4432b56f57face8516a93f4aa14e78db11a3ff85 Mon Sep 17 00:00:00 2001
+From 5343ca2873221f9586fabb380027ff2e271ffd6e Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Tue, 6 Aug 2024 00:37:43 +0300
+Date: Tue, 27 Aug 2024 16:28:07 +0300
 Subject: [PATCH] add meson
 
 ---
  .gitignore               |  1 +
- meson.build              | 91 ++++++++++++++++++++++++++++++++++++++++
+ meson.build              | 92 ++++++++++++++++++++++++++++++++++++++++
  subprojects/wlroots.wrap |  5 +++
- 3 files changed, 97 insertions(+)
+ 3 files changed, 98 insertions(+)
  create mode 100644 meson.build
  create mode 100644 subprojects/wlroots.wrap
 
@@ -22,10 +22,10 @@ index 0dde90e..9246a31 100644
 +subprojects/wlroots
 diff --git a/meson.build b/meson.build
 new file mode 100644
-index 0000000..fb8d4ac
+index 0000000..ceef1e0
 --- /dev/null
 +++ b/meson.build
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,92 @@
 +project(
 +	'dwl',
 +	'c',
@@ -57,6 +57,7 @@ index 0000000..fb8d4ac
 +
 +wlroots = subproject('wlroots',
 +	default_options: [
++		'backends=libinput,auto',
 +		'default_library=static',
 +		'examples=false',
 +	],
