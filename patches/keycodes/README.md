@@ -1,9 +1,12 @@
 ### Description
-Use keycodes instead of keysyms. This way, input is independent from keyboard layout (you can use the keys.h file to customize, or get the keycodes with `wev` or `xkbcli interactive-wayland` (x11-libs/libxkbcommon[tools] in gentoo)).
+Use keycodes instead of keysyms. This way, input is independent from keyboard
+layout (you can use the keys.h file to customize, or get the keycodes with
+`wev` or `xkbcli interactive-wayland` (x11-libs/libxkbcommon[tools] in gentoo)).
 
 ### Download
 - [git branch](https://codeberg.org/sevz/dwl/src/branch/keycodes)
 - [2024-06-07](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/keycodes/keycodes.patch)
+- [keycodes-0.7.patch](/dwl/dwl-patches/raw/branch/main/patches/keycodes/keycodes-0.7.patch)
 
 ### Config after patching 
 (run in DWL source directory)
