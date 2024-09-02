@@ -5,7 +5,7 @@ layout (you can use the keys.h file to customize, or get the keycodes with
 
 ### Download
 - [git branch](https://codeberg.org/sevz/dwl/src/branch/keycodes)
-- [2024-06-07](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/keycodes/keycodes.patch)
+- [main 2024-09-01](/dwl/dwl-patches/raw/branch/main/patches/keycodes/keycodes.patch)
 - [keycodes-0.7.patch](/dwl/dwl-patches/raw/branch/main/patches/keycodes/keycodes-0.7.patch)
 
 ### Config after patching 
