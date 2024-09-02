@@ -1,7 +1,7 @@
 ### Description
 Show the master area to the right.
 
-### Reason of deprecation
+### Reason for deprecation
 I created this patch for a user on Discord and I have never used it.
 
 ### Download
