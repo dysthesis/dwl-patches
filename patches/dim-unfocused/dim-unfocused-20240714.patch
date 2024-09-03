@@ -1,8 +1,8 @@
 diff --git a/client.h b/client.h
-index dabea35..3a31c25 100644
+index f0e5445..04b8d31 100644
 --- a/client.h
 +++ b/client.h
-@@ -319,6 +319,12 @@ client_set_border_color(Client *c, const float color[static 4])
+@@ -320,6 +320,12 @@ client_set_border_color(Client *c, const float color[static 4])
  		wlr_scene_rect_set_color(c->border[i], color);
  }
  
@@ -16,7 +16,7 @@ index dabea35..3a31c25 100644
  client_set_fullscreen(Client *c, int fullscreen)
  {
 diff --git a/config.def.h b/config.def.h
-index 22d2171..4ca21c9 100644
+index 22d2171..e1b2bf0 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -10,6 +10,7 @@ static const unsigned int borderpx         = 1;  /* border pixel of windows */
@@ -54,18 +54,11 @@ index 22d2171..4ca21c9 100644
  	{ MODKEY,                    XKB_KEY_0,          view,           {.ui = ~0} },
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_parenright, tag,            {.ui = ~0} },
  	{ MODKEY,                    XKB_KEY_comma,      focusmon,       {.i = WLR_DIRECTION_LEFT} },
-@@ -172,5 +175,6 @@ static const Key keys[] = {
- static const Button buttons[] = {
- 	{ MODKEY, BTN_LEFT,   moveresize,     {.ui = CurMove} },
- 	{ MODKEY, BTN_MIDDLE, togglefloating, {0} },
-+	{ MODKEY|ShiftMask, BTN_MIDDLE, toggledimmingclient, {0} },
- 	{ MODKEY, BTN_RIGHT,  moveresize,     {.ui = CurResize} },
- };
 diff --git a/dwl.c b/dwl.c
-index 9021e44..e1f32e9 100644
+index 145fd01..6c65860 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -112,6 +112,7 @@ typedef struct {
+@@ -110,6 +110,7 @@ typedef struct {
  	Monitor *mon;
  	struct wlr_scene_tree *scene;
  	struct wlr_scene_rect *border[4]; /* top, bottom, left, right */
@@ -73,7 +66,7 @@ index 9021e44..e1f32e9 100644
  	struct wlr_scene_tree *scene_surface;
  	struct wl_list link;
  	struct wl_list flink;
-@@ -141,7 +142,7 @@ typedef struct {
+@@ -138,7 +139,7 @@ typedef struct {
  #endif
  	unsigned int bw;
  	uint32_t tags;
@@ -82,7 +75,7 @@ index 9021e44..e1f32e9 100644
  	uint32_t resize; /* configure serial of a pending resize */
  } Client;
  
-@@ -231,6 +232,7 @@ typedef struct {
+@@ -229,6 +230,7 @@ typedef struct {
  	const char *title;
  	uint32_t tags;
  	int isfloating;
@@ -90,16 +83,15 @@ index 9021e44..e1f32e9 100644
  	int monitor;
  } Rule;
  
-@@ -338,6 +340,8 @@ static void startdrag(struct wl_listener *listener, void *data);
+@@ -334,6 +336,7 @@ static void startdrag(struct wl_listener *listener, void *data);
  static void tag(const Arg *arg);
  static void tagmon(const Arg *arg);
  static void tile(Monitor *m);
 +static void toggledimming(const Arg *arg);
-+static void toggledimmingclient(const Arg *arg);
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
  static void toggletag(const Arg *arg);
-@@ -410,6 +414,7 @@ static struct wlr_output_layout *output_layout;
+@@ -407,6 +410,7 @@ static struct wlr_output_layout *output_layout;
  static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;
@@ -107,7 +99,7 @@ index 9021e44..e1f32e9 100644
  
  #ifdef XWAYLAND
  static void activatex11(struct wl_listener *listener, void *data);
-@@ -466,6 +471,7 @@ applyrules(Client *c)
+@@ -465,6 +469,7 @@ applyrules(Client *c)
  		if ((!r->title || strstr(title, r->title))
  				&& (!r->id || strstr(appid, r->id))) {
  			c->isfloating = r->isfloating;
@@ -115,7 +107,7 @@ index 9021e44..e1f32e9 100644
  			newtags |= r->tags;
  			i = 0;
  			wl_list_for_each(m, &mons, link) {
-@@ -1366,8 +1372,10 @@ focusclient(Client *c, int lift)
+@@ -1346,8 +1351,10 @@ focusclient(Client *c, int lift)
  
  		/* Don't change border color if there is an exclusive focus or we are
  		 * handling a drag operation */
@@ -127,7 +119,7 @@ index 9021e44..e1f32e9 100644
  	}
  
  	/* Deactivate old client if focus is changing */
-@@ -1385,7 +1393,7 @@ focusclient(Client *c, int lift)
+@@ -1365,7 +1372,7 @@ focusclient(Client *c, int lift)
  		 * and probably other clients */
  		} else if (old_c && !client_is_unmanaged(old_c) && (!c || !client_wants_focus(c))) {
  			client_set_border_color(old_c, bordercolor);
@@ -136,17 +128,16 @@ index 9021e44..e1f32e9 100644
  			client_activate_surface(old, 0);
  		}
  	}
-@@ -1682,8 +1690,7 @@ void
+@@ -1638,7 +1645,7 @@ void
  mapnotify(struct wl_listener *listener, void *data)
  {
  	/* Called when the surface is mapped, or ready to display on-screen. */
--	Client *p = NULL;
--	Client *w, *c = wl_container_of(listener, c, map);
+-	Client *p, *w, *c = wl_container_of(listener, c, map);
 +	Client *p, *w, *d, *c = wl_container_of(listener, c, map);
  	Monitor *m;
  	int i;
  
-@@ -1717,6 +1724,10 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1670,6 +1677,10 @@ mapnotify(struct wl_listener *listener, void *data)
  		c->border[i]->node.data = c;
  	}
  
@@ -157,7 +148,7 @@ index 9021e44..e1f32e9 100644
  	/* Initialize client geometry with room for border */
  	client_set_tiled(c, WLR_EDGE_TOP | WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
  	c->geom.width += 2 * c->bw;
-@@ -1735,6 +1746,10 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1688,6 +1699,10 @@ mapnotify(struct wl_listener *listener, void *data)
  		setmon(c, p->mon, p->tags);
  	} else {
  		applyrules(c);
@@ -168,7 +159,7 @@ index 9021e44..e1f32e9 100644
  	}
  	printstatus();
  
-@@ -2161,7 +2176,7 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2141,7 +2156,7 @@ resize(Client *c, struct wlr_box geo, int interact)
  	c->geom = geo;
  	applybounds(c, bbox);
  
@@ -177,7 +168,7 @@ index 9021e44..e1f32e9 100644
  	wlr_scene_node_set_position(&c->scene->node, c->geom.x, c->geom.y);
  	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
  	wlr_scene_rect_set_size(c->border[0], c->geom.width, c->bw);
-@@ -2171,6 +2186,8 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2151,6 +2166,8 @@ resize(Client *c, struct wlr_box geo, int interact)
  	wlr_scene_node_set_position(&c->border[1]->node, 0, c->geom.height - c->bw);
  	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
  	wlr_scene_node_set_position(&c->border[3]->node, c->geom.width - c->bw, c->bw);
@@ -186,7 +177,7 @@ index 9021e44..e1f32e9 100644
  
  	/* this is a no-op if size hasn't changed */
  	c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
-@@ -2682,6 +2699,27 @@ tile(Monitor *m)
+@@ -2666,6 +2683,19 @@ tile(Monitor *m)
  	}
  }
  
@@ -201,14 +192,6 @@ index 9021e44..e1f32e9 100644
 +   c = focustop(selmon);
 +   if (c)
 +	client_set_dimmer_state(c, 0);
-+}
-+
-+void
-+toggledimmingclient(const Arg *arg)
-+{
-+	Client *sel = focustop(selmon);
-+	if (sel)
-+        sel -> neverdim ^= 1;
 +}
 +
  void
