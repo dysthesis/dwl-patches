@@ -10,8 +10,8 @@ This patch adds the following functions:
 If you don't assign keybindings to any of the above functions and so get a compiler warning about them not being used, just remove them from your dwl branch to stop the warning.
 
 ### Download
-- [git branch](https://codeberg.org/bencc/dwl/src/branch/namedscratchpads)
-- [2024-07-13](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/namedscratchpads/namedscratchpads.patch)
+- [git branch (v0.6)](https://codeberg.org/bencc/dwl/src/branch/namedscratchpads)
+- [2024-07-13 (v0.6)](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/namedscratchpads/namedscratchpads.patch)
 
 ### Authors
 - [Ben Collerson](https://codeberg.org/bencc)
