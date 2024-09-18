@@ -62,7 +62,7 @@ index 22d2171..4ca21c9 100644
  	{ MODKEY, BTN_RIGHT,  moveresize,     {.ui = CurResize} },
  };
 diff --git a/dwl.c b/dwl.c
-index dc0c861..dcc3ece 100644
+index 9021e44..e1f32e9 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -112,6 +112,7 @@ typedef struct {
@@ -115,7 +115,7 @@ index dc0c861..dcc3ece 100644
  			newtags |= r->tags;
  			i = 0;
  			wl_list_for_each(m, &mons, link) {
-@@ -1365,8 +1371,10 @@ focusclient(Client *c, int lift)
+@@ -1366,8 +1372,10 @@ focusclient(Client *c, int lift)
  
  		/* Don't change border color if there is an exclusive focus or we are
  		 * handling a drag operation */
@@ -127,7 +127,7 @@ index dc0c861..dcc3ece 100644
  	}
  
  	/* Deactivate old client if focus is changing */
-@@ -1384,7 +1392,7 @@ focusclient(Client *c, int lift)
+@@ -1385,7 +1393,7 @@ focusclient(Client *c, int lift)
  		 * and probably other clients */
  		} else if (old_c && !client_is_unmanaged(old_c) && (!c || !client_wants_focus(c))) {
  			client_set_border_color(old_c, bordercolor);
@@ -136,7 +136,7 @@ index dc0c861..dcc3ece 100644
  			client_activate_surface(old, 0);
  		}
  	}
-@@ -1681,8 +1689,7 @@ void
+@@ -1682,8 +1690,7 @@ void
  mapnotify(struct wl_listener *listener, void *data)
  {
  	/* Called when the surface is mapped, or ready to display on-screen. */
@@ -146,7 +146,7 @@ index dc0c861..dcc3ece 100644
  	Monitor *m;
  	int i;
  
-@@ -1716,6 +1723,10 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1717,6 +1724,10 @@ mapnotify(struct wl_listener *listener, void *data)
  		c->border[i]->node.data = c;
  	}
  
@@ -157,7 +157,7 @@ index dc0c861..dcc3ece 100644
  	/* Initialize client geometry with room for border */
  	client_set_tiled(c, WLR_EDGE_TOP | WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
  	c->geom.width += 2 * c->bw;
-@@ -1734,6 +1745,10 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1735,6 +1746,10 @@ mapnotify(struct wl_listener *listener, void *data)
  		setmon(c, p->mon, p->tags);
  	} else {
  		applyrules(c);
@@ -168,7 +168,7 @@ index dc0c861..dcc3ece 100644
  	}
  	printstatus();
  
-@@ -2160,7 +2175,7 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2161,7 +2176,7 @@ resize(Client *c, struct wlr_box geo, int interact)
  	c->geom = geo;
  	applybounds(c, bbox);
  
@@ -177,7 +177,7 @@ index dc0c861..dcc3ece 100644
  	wlr_scene_node_set_position(&c->scene->node, c->geom.x, c->geom.y);
  	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
  	wlr_scene_rect_set_size(c->border[0], c->geom.width, c->bw);
-@@ -2170,6 +2185,8 @@ resize(Client *c, struct wlr_box geo, int interact)
+@@ -2171,6 +2186,8 @@ resize(Client *c, struct wlr_box geo, int interact)
  	wlr_scene_node_set_position(&c->border[1]->node, 0, c->geom.height - c->bw);
  	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
  	wlr_scene_node_set_position(&c->border[3]->node, c->geom.width - c->bw, c->bw);
@@ -186,7 +186,7 @@ index dc0c861..dcc3ece 100644
  
  	/* this is a no-op if size hasn't changed */
  	c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
-@@ -2681,6 +2698,27 @@ tile(Monitor *m)
+@@ -2682,6 +2699,27 @@ tile(Monitor *m)
  	}
  }
  
