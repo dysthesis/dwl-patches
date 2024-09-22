@@ -13,8 +13,8 @@ slstatus -s | dwl
 * pixman
 
 ### Download
-- [0.7](/dwl/dwl-patches/raw/branch/main/patches/bar/bar-0.7.patch))
-- [0.6](/dwl/dwl-patches/raw/branch/main/patches/bar/bar-0.6.patch))
+- [0.7](/dwl/dwl-patches/raw/branch/main/patches/bar/bar-0.7.patch)
+- [0.6](/dwl/dwl-patches/raw/branch/main/patches/bar/bar-0.6.patch)
 
 It is required to remove, regenerate or update `config.h` after applying the patch,
 since it makes changes to the configuration structure.
