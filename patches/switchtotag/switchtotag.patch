@@ -1,14 +1,14 @@
-From d199c4950688430a79920dc019412eea0a071330 Mon Sep 17 00:00:00 2001
+From 08cfc2eceb34316cfd7eaf591a8a631e3d58ff3a Mon Sep 17 00:00:00 2001
 From: Guido Cella <guido@guidocella.xyz>
-Date: Wed, 28 Aug 2024 17:22:50 +0200
+Date: Mon, 30 Sep 2024 08:40:25 +0200
 Subject: [PATCH] allow switching to the configured tag when a window opens
 
 Add a rule option to switch to the configured tag when a window opens,
 then switch back when it closes.
 ---
  config.def.h |  6 +++---
- dwl.c        | 19 +++++++++++++++----
- 2 files changed, 18 insertions(+), 7 deletions(-)
+ dwl.c        | 23 +++++++++++++++++++----
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index 22d2171..52ea128 100644
@@ -29,7 +29,7 @@ index 22d2171..52ea128 100644
  
  /* layout(s) */
 diff --git a/dwl.c b/dwl.c
-index 9021e44..264926a 100644
+index dc0c861..621b614 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -142,6 +142,7 @@ typedef struct {
@@ -87,7 +87,7 @@ index 9021e44..264926a 100644
  		if (c->mon) {
  			client_set_scale(client_surface(c), c->mon->wlr_output->scale);
  		}
-@@ -1734,7 +1741,7 @@ mapnotify(struct wl_listener *listener, void *data)
+@@ -1733,7 +1740,7 @@ mapnotify(struct wl_listener *listener, void *data)
  		c->isfloating = 1;
  		setmon(c, p->mon, p->tags);
  	} else {
@@ -96,17 +96,21 @@ index 9021e44..264926a 100644
  	}
  	printstatus();
  
-@@ -2773,6 +2780,10 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -2769,6 +2776,14 @@ unmapnotify(struct wl_listener *listener, void *data)
+ 		wl_list_remove(&c->flink);
+ 	}
+ 
++	if (c->switchtotag) {
++		Arg a = { .ui = c->switchtotag };
++		// Call view() -> arrange() -> checkidleinhibitor() before
++		// wlr_scene_node_destroy() to prevent a rare use after free of
++		// tree->node.
++		view(&a);
++	}
++
  	wlr_scene_node_destroy(&c->scene->node);
  	printstatus();
  	motionnotify(0, NULL, 0, 0, 0, 0);
-+	if (c->switchtotag) {
-+		Arg a = { .ui = c->switchtotag };
-+		view(&a);
-+	}
- }
- 
- void
 -- 
-2.45.2
+2.46.0
 

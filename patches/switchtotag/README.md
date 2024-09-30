@@ -3,7 +3,7 @@ Add a rule option to switch to the configured tag when a window opens, then swit
 
 ### Download
 - [git branch](https://codeberg.org/guidocella/dwl/src/branch/switchtotag)
-- [2024-08-28](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/switchtotag/switchtotag.patch)
+- [2024-09-30](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/switchtotag/switchtotag.patch)
 
 ### Authors
 - [Guido Cella](https://codeberg.org/guidocella)
