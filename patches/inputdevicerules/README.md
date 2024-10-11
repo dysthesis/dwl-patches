@@ -1,4 +1,5 @@
 ### Description
+
 Input device rules implemented using custom device create functions for
 keyboards and pointing devices.
 
@@ -10,7 +11,8 @@ Examples provided:
 
 ### Download
 - [git branch](https://codeberg.org/bencc/dwl/src/branch/inputdevicerules)
-- [2024-06-21](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/inputdevicerules/inputdevicerules.patch)
+- [v0.7](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/inputdevicerules/inputdevicerules-v0.7.patch)
+- [v0.6](https://codeberg.org/dwl/dwl-patches/raw/branch/main/patches/inputdevicerules/inputdevicerules-v0.6.patch)
 
 ### Authors
 - [Ben Collerson](https://codeberg.org/bencc)
