@@ -9,3 +9,4 @@ When resizing windows, the mouse will jump and resize the window in the quadrant
 
 ### Authors
 - [wochap](https://codeberg.org/wochap)
+- [schance995](https://codeberg.org/schance995)
