@@ -1,12 +1,12 @@
-From b8c4c5656b9829e0102e8a2821e2172d3bcdaa04 Mon Sep 17 00:00:00 2001
+From 79c08f30044377f6f2566310429b1875e5f48280 Mon Sep 17 00:00:00 2001
 From: Gavin M <git@gavinm.us>
-Date: Sat, 16 Nov 2024 08:00:35 -0500
+Date: Sat, 16 Nov 2024 09:51:59 -0500
 Subject: [PATCH] Add tab support
 
 ---
  config.def.h |  25 +++-
- dwl.c        | 393 +++++++++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 387 insertions(+), 31 deletions(-)
+ dwl.c        | 391 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 385 insertions(+), 31 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
 index 5d1dc2b..8053e83 100644
@@ -61,7 +61,7 @@ index 5d1dc2b..8053e83 100644
  
  /* monitors */
 diff --git a/dwl.c b/dwl.c
-index 1e199f3..d99da58 100644
+index 1e199f3..f1b4dfa 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -13,6 +13,7 @@
@@ -614,16 +614,7 @@ index 1e199f3..d99da58 100644
  }
  
  void
-@@ -2820,6 +3101,8 @@ setup(void)
- 	status_event_source = wl_event_loop_add_fd(wl_display_get_event_loop(dpy),
- 		STDIN_FILENO, WL_EVENT_READABLE, statusin, NULL);
- 
-+	drwl_init();
-+
- 	/* Make sure XWayland clients don't connect to the parent X server,
- 	 * e.g when running in the x11 backend or the wayland backend and the
- 	 * compositor has Xwayland support */
-@@ -2898,14 +3181,22 @@ tag(const Arg *arg)
+@@ -2898,14 +3179,22 @@ tag(const Arg *arg)
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
  	drawbars();
@@ -647,7 +638,7 @@ index 1e199f3..d99da58 100644
  }
  
  void
-@@ -2979,6 +3270,8 @@ toggletag(const Arg *arg)
+@@ -2979,6 +3268,8 @@ toggletag(const Arg *arg)
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
  	drawbars();
@@ -656,7 +647,7 @@ index 1e199f3..d99da58 100644
  }
  
  void
-@@ -2992,6 +3285,8 @@ toggleview(const Arg *arg)
+@@ -2992,6 +3283,8 @@ toggleview(const Arg *arg)
  	focusclient(focustop(selmon), 1);
  	arrange(selmon);
  	drawbars();
@@ -665,7 +656,7 @@ index 1e199f3..d99da58 100644
  }
  
  void
-@@ -3022,6 +3317,9 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -3022,6 +3315,9 @@ unmapnotify(struct wl_listener *listener, void *data)
  {
  	/* Called when the surface is unmapped, and should no longer be shown. */
  	Client *c = wl_container_of(listener, c, unmap);
@@ -675,7 +666,7 @@ index 1e199f3..d99da58 100644
  	if (c == grabc) {
  		cursor_mode = CurNormal;
  		grabc = NULL;
-@@ -3038,6 +3336,20 @@ unmapnotify(struct wl_listener *listener, void *data)
+@@ -3038,6 +3334,20 @@ unmapnotify(struct wl_listener *listener, void *data)
  		wl_list_remove(&c->flink);
  	}
  
@@ -696,7 +687,7 @@ index 1e199f3..d99da58 100644
  	wlr_scene_node_destroy(&c->scene->node);
  	drawbars();
  	motionnotify(0, NULL, 0, 0, 0, 0);
-@@ -3058,9 +3370,12 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -3058,9 +3368,12 @@ updatemons(struct wl_listener *listener, void *data)
  	Client *c;
  	struct wlr_output_configuration_head_v1 *config_head;
  	Monitor *m;
@@ -709,7 +700,7 @@ index 1e199f3..d99da58 100644
  		if (m->wlr_output->enabled || m->asleep)
  			continue;
  		config_head = wlr_output_configuration_head_v1_create(config, m->wlr_output);
-@@ -3124,6 +3439,23 @@ updatemons(struct wl_listener *listener, void *data)
+@@ -3124,6 +3437,23 @@ updatemons(struct wl_listener *listener, void *data)
  		if (!selmon) {
  			selmon = m;
  		}
@@ -733,7 +724,7 @@ index 1e199f3..d99da58 100644
  	}
  
  	if (selmon && selmon->wlr_output->enabled) {
-@@ -3195,6 +3527,7 @@ updatetitle(struct wl_listener *listener, void *data)
+@@ -3195,6 +3525,7 @@ updatetitle(struct wl_listener *listener, void *data)
  	Client *c = wl_container_of(listener, c, set_title);
  	if (c == focustop(c->mon))
  		drawbars();
@@ -741,7 +732,7 @@ index 1e199f3..d99da58 100644
  }
  
  void
-@@ -3322,8 +3655,10 @@ zoom(const Arg *arg)
+@@ -3322,8 +3653,10 @@ zoom(const Arg *arg)
  	wl_list_remove(&sel->link);
  	wl_list_insert(&clients, &sel->link);
  
@@ -752,7 +743,7 @@ index 1e199f3..d99da58 100644
  }
  
  #ifdef XWAYLAND
-@@ -3375,6 +3710,10 @@ createnotifyx11(struct wl_listener *listener, void *data)
+@@ -3375,6 +3708,10 @@ createnotifyx11(struct wl_listener *listener, void *data)
  	c->surface.xwayland = xsurface;
  	c->type = X11;
  	c->bw = client_is_unmanaged(c) ? 0 : borderpx;
