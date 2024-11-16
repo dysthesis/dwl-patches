@@ -1,14 +1,14 @@
 ### Description
 Add tabs or a title bar to the top or bottom of windows.
 
-Much of the code was taken from the [bar patch](/dwl/dwl-patches/raw/branch/main/patches/bar). 
+Much of the code was taken from the [bar patch](/dwl/dwl-patches/src/branch/main/_STALE_PATCHES/tab-pango). 
 
 **This is the new version using `drwl`. The [old version](/dwl/dwl-patches/_STALE_PATCHES/tab-pango) is deprecated.**
 
 ### Dependencies
-tllist (build dependency, required & pulled automatically by fcft)
-fcft
-pixman
+- tllist (build dependency, required & pulled automatically by fcft)
+- fcft
+- pixman
 
 ### Download
 - [git branch](/dev-gm/dwl/src/branch/tab) 
