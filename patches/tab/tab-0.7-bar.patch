@@ -1,15 +1,15 @@
-From 79c08f30044377f6f2566310429b1875e5f48280 Mon Sep 17 00:00:00 2001
-From: Gavin M <git@gavinm.us>
-Date: Sat, 16 Nov 2024 09:51:59 -0500
+From 3944cc81d0683700405cd106edf965293abbb87c Mon Sep 17 00:00:00 2001
+From: dev-gm <codeberg@gavinm.us>
+Date: Sat, 16 Nov 2024 23:27:19 -0500
 Subject: [PATCH] Add tab support
 
 ---
  config.def.h |  25 +++-
- dwl.c        | 391 +++++++++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 385 insertions(+), 31 deletions(-)
+ dwl.c        | 392 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 386 insertions(+), 31 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index 5d1dc2b..8053e83 100644
+index 5d1dc2b..52fcfee 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -10,6 +10,13 @@ static const unsigned int borderpx         = 1;  /* border pixel of windows */
@@ -34,7 +34,7 @@ index 5d1dc2b..8053e83 100644
 +	/*               fg          bg          border    */
 +	[SchemeNorm] = { 0xbbbbbbff, 0x222222ff, 0x555555ff },
 +	[SchemeSel]  = { 0xeeeeeeff, 0x005577ff, 0x555555ff },
-+	[SchemeUrg]  = { 0,          0,          0x555555ff },
++	[SchemeUrg]  = { 0xc7c7c7ff, 0x222222ff, 0x770000ff },
 +};
 +
  /* tagging - TAGCOUNT must be no greater than 31 */
@@ -61,7 +61,7 @@ index 5d1dc2b..8053e83 100644
  
  /* monitors */
 diff --git a/dwl.c b/dwl.c
-index 1e199f3..f1b4dfa 100644
+index 1e199f3..e7754d3 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -13,6 +13,7 @@
@@ -732,7 +732,15 @@ index 1e199f3..f1b4dfa 100644
  }
  
  void
-@@ -3322,8 +3653,10 @@ zoom(const Arg *arg)
+@@ -3208,6 +3539,7 @@ urgent(struct wl_listener *listener, void *data)
+ 
+ 	c->isurgent = 1;
+ 	drawbars();
++	drawtbars(c->mon, 1, 1);
+ 
+ 	if (client_surface(c)->mapped)
+ 		client_set_border_color(c, (float[])COLOR(colors[SchemeUrg][ColBorder]));
+@@ -3322,8 +3654,10 @@ zoom(const Arg *arg)
  	wl_list_remove(&sel->link);
  	wl_list_insert(&clients, &sel->link);
  
@@ -743,7 +751,7 @@ index 1e199f3..f1b4dfa 100644
  }
  
  #ifdef XWAYLAND
-@@ -3375,6 +3708,10 @@ createnotifyx11(struct wl_listener *listener, void *data)
+@@ -3375,6 +3709,10 @@ createnotifyx11(struct wl_listener *listener, void *data)
  	c->surface.xwayland = xsurface;
  	c->type = X11;
  	c->bw = client_is_unmanaged(c) ? 0 : borderpx;

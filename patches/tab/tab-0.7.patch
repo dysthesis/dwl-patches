@@ -1,14 +1,14 @@
-From 1c70892c69d7000b3a41798888a3544f4fc149b4 Mon Sep 17 00:00:00 2001
-From: Gavin M <git@gavinm.us>
-Date: Sat, 16 Nov 2024 07:26:51 -0500
+From 419fa4d6212806d9e4a3439568f8a103a57de912 Mon Sep 17 00:00:00 2001
+From: dev-gm <codeberg@gavinm.us>
+Date: Sat, 16 Nov 2024 23:19:42 -0500
 Subject: [PATCH] Add tab support
 
 ---
  Makefile     |   2 +-
  config.def.h |  37 ++++-
  drwl.h       | 320 ++++++++++++++++++++++++++++++++++++
- dwl.c        | 448 ++++++++++++++++++++++++++++++++++++++++++++++++---
- 4 files changed, 776 insertions(+), 31 deletions(-)
+ dwl.c        | 449 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ 4 files changed, 777 insertions(+), 31 deletions(-)
  create mode 100644 drwl.h
 
 diff --git a/Makefile b/Makefile
@@ -25,7 +25,7 @@ index 3358bae..9bc67db 100644
  LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` -lm $(LIBS)
  
 diff --git a/config.def.h b/config.def.h
-index 22d2171..97f8e50 100644
+index 22d2171..9d33d89 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -7,13 +7,31 @@
@@ -58,7 +58,7 @@ index 22d2171..97f8e50 100644
 +	/*               fg          bg          border    */
 +	[SchemeNorm] = { 0xbbbbbbff, 0x222222ff, 0x555555ff },
 +	[SchemeSel]  = { 0xeeeeeeff, 0x005577ff, 0x555555ff },
-+	[SchemeUrg]  = { 0,          0,          0x555555ff },
++	[SchemeUrg]  = { 0xc7c7c7ff, 0x222222ff, 0x770000ff },
 +};
 +
  /* tagging - TAGCOUNT must be no greater than 31 */
@@ -411,7 +411,7 @@ index 0000000..02eb8e9
 +	fcft_fini();
 +}
 diff --git a/dwl.c b/dwl.c
-index def2562..652b7c3 100644
+index def2562..893b1f1 100644
 --- a/dwl.c
 +++ b/dwl.c
 @@ -5,6 +5,7 @@
@@ -1204,8 +1204,11 @@ index def2562..652b7c3 100644
  }
  
  void
-@@ -2944,7 +3342,7 @@ urgent(struct wl_listener *listener, void *data)
+@@ -2942,9 +3340,10 @@ urgent(struct wl_listener *listener, void *data)
+ 
+ 	c->isurgent = 1;
  	printstatus();
++	drawtbars(c->mon, 1, 1);
  
  	if (client_surface(c)->mapped)
 -		client_set_border_color(c, urgentcolor);
@@ -1213,7 +1216,7 @@ index def2562..652b7c3 100644
  }
  
  void
-@@ -3052,8 +3450,10 @@ zoom(const Arg *arg)
+@@ -3052,8 +3451,10 @@ zoom(const Arg *arg)
  	wl_list_remove(&sel->link);
  	wl_list_insert(&clients, &sel->link);
  
@@ -1224,7 +1227,7 @@ index def2562..652b7c3 100644
  }
  
  #ifdef XWAYLAND
-@@ -3105,6 +3505,10 @@ createnotifyx11(struct wl_listener *listener, void *data)
+@@ -3105,6 +3506,10 @@ createnotifyx11(struct wl_listener *listener, void *data)
  	c->surface.xwayland = xsurface;
  	c->type = X11;
  	c->bw = client_is_unmanaged(c) ? 0 : borderpx;
@@ -1235,7 +1238,7 @@ index def2562..652b7c3 100644
  
  	/* Listen to the various events it can emit */
  	LISTEN(&xsurface->events.associate, &c->associate, associatex11);
-@@ -3150,7 +3554,7 @@ sethints(struct wl_listener *listener, void *data)
+@@ -3150,7 +3555,7 @@ sethints(struct wl_listener *listener, void *data)
  	printstatus();
  
  	if (c->isurgent && surface && surface->mapped)
