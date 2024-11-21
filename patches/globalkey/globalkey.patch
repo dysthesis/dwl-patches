@@ -1,6 +1,6 @@
-From d22333d0f165cf30fc2621f8efa46216c607e2f1 Mon Sep 17 00:00:00 2001
+From 65e2466212beb3040241e3b6ca8e730e6b96fd66 Mon Sep 17 00:00:00 2001
 From: korei999 <ju7t1xe@gmail.com>
-Date: Fri, 14 Jun 2024 18:28:34 +0300
+Date: Thu, 21 Nov 2024 02:24:32 +0200
 Subject: [PATCH] implement globalkey patch
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH] implement globalkey patch
  2 files changed, 66 insertions(+)
 
 diff --git a/config.def.h b/config.def.h
-index a784eb4..59c5267 100644
+index 22d2171..2bf1c68 100644
 --- a/config.def.h
 +++ b/config.def.h
-@@ -119,6 +119,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
+@@ -122,6 +122,14 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
  static const char *termcmd[] = { "foot", NULL };
  static const char *menucmd[] = { "wmenu-run", NULL };
  
@@ -28,10 +28,10 @@ index a784eb4..59c5267 100644
  	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
  	/* modifier                  key                 function        argument */
 diff --git a/dwl.c b/dwl.c
-index 5a31aee..2590815 100644
+index 9acb898..a0d632a 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -218,6 +218,13 @@ typedef struct {
+@@ -221,6 +221,13 @@ typedef struct {
  	int x, y;
  } MonitorRule;
  
@@ -45,7 +45,7 @@ index 5a31aee..2590815 100644
  typedef struct {
  	struct wlr_pointer_constraint_v1 *constraint;
  	struct wl_listener destroy;
-@@ -291,6 +298,7 @@ static void incnmaster(const Arg *arg);
+@@ -297,6 +304,7 @@ static void incnmaster(const Arg *arg);
  static void inputdevice(struct wl_listener *listener, void *data);
  static int keybinding(uint32_t mods, xkb_keysym_t sym);
  static void keypress(struct wl_listener *listener, void *data);
@@ -53,7 +53,7 @@ index 5a31aee..2590815 100644
  static void keypressmod(struct wl_listener *listener, void *data);
  static int keyrepeat(void *data);
  static void killclient(const Arg *arg);
-@@ -1513,6 +1521,12 @@ keypress(struct wl_listener *listener, void *data)
+@@ -1575,6 +1583,12 @@ keypress(struct wl_listener *listener, void *data)
  	/* This event is raised when a key is pressed or released. */
  	KeyboardGroup *group = wl_container_of(listener, group, key);
  	struct wlr_keyboard_key_event *event = data;
@@ -66,7 +66,7 @@ index 5a31aee..2590815 100644
  
  	/* Translate libinput keycode -> xkbcommon */
  	uint32_t keycode = event->keycode + 8;
-@@ -1547,12 +1561,56 @@ keypress(struct wl_listener *listener, void *data)
+@@ -1609,12 +1623,56 @@ keypress(struct wl_listener *listener, void *data)
  	if (handled)
  		return;
  
@@ -78,7 +78,7 @@ index 5a31aee..2590815 100644
 +#endif
 +		;
 +	/* passed keys don't get repeated */
-+	if (pass)
++	if (pass && syms)
 +		keypressglobal(last_surface, &group->wlr_group->keyboard, event, mods, syms[0]);
 +
  	wlr_seat_set_keyboard(seat, &group->wlr_group->keyboard);
@@ -124,5 +124,5 @@ index 5a31aee..2590815 100644
  keypressmod(struct wl_listener *listener, void *data)
  {
 -- 
-2.45.2
+2.47.0
 
