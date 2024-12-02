@@ -11,7 +11,6 @@ Much of the code was taken from the [bar patch](/dwl/dwl-patches/src/branch/main
 - pixman
 
 ### Download
-- [git branch](/dev-gm/dwl/src/branch/tab) 
 - [0.7](/dwl/dwl-patches/raw/branch/main/patches/tab/tab-0.7.patch)
 - [0.7 + bar](/dwl/dwl-patches/raw/branch/main/patches/tab/tab-0.7-bar.patch)
 - [main 2024-11-15](/dwl/dwl-patches/raw/branch/main/patches/tab/tab.patch)
