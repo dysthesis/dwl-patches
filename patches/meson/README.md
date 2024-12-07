@@ -12,7 +12,7 @@ unusual checks, such as requiring `hwdata` for the DRM backend.
 
 ### Download
 - [git branch](/sewn/dwl/src/branch/meson)
-- [2024-08-27](/dwl/dwl-patches/raw/branch/main/patches/meson/meson.patch)
+- [2024-12-07](/dwl/dwl-patches/raw/branch/main/patches/meson/meson.patch)
 
 ### Authors
 - [sewn](/sewn)

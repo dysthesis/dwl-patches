@@ -1,13 +1,13 @@
-From 5343ca2873221f9586fabb380027ff2e271ffd6e Mon Sep 17 00:00:00 2001
+From 136cdeb302fdfe28e5cd5c6a1693b05c3d1bfb58 Mon Sep 17 00:00:00 2001
 From: sewn <sewn@disroot.org>
-Date: Tue, 27 Aug 2024 16:28:07 +0300
+Date: Sat, 7 Dec 2024 09:59:01 +0300
 Subject: [PATCH] add meson
 
 ---
  .gitignore               |  1 +
- meson.build              | 92 ++++++++++++++++++++++++++++++++++++++++
+ meson.build              | 93 ++++++++++++++++++++++++++++++++++++++++
  subprojects/wlroots.wrap |  5 +++
- 3 files changed, 98 insertions(+)
+ 3 files changed, 99 insertions(+)
  create mode 100644 meson.build
  create mode 100644 subprojects/wlroots.wrap
 
@@ -22,10 +22,10 @@ index 0dde90e..9246a31 100644
 +subprojects/wlroots
 diff --git a/meson.build b/meson.build
 new file mode 100644
-index 0000000..ceef1e0
+index 0000000..e2219ec
 --- /dev/null
 +++ b/meson.build
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,93 @@
 +project(
 +	'dwl',
 +	'c',
@@ -57,9 +57,10 @@ index 0000000..ceef1e0
 +
 +wlroots = subproject('wlroots',
 +	default_options: [
-+		'backends=libinput,auto',
++		'backends=drm,libinput,auto',
 +		'default_library=static',
 +		'examples=false',
++		'session=enabled',
 +	],
 +)
 +wlroots_has_xwlr = wlroots.get_variable('features').get('xwayland')
@@ -130,5 +131,5 @@ index 0000000..3d9cbfa
 +depth = 1
 +clone-recursive = true
 -- 
-2.46.0
+2.47.1
 
