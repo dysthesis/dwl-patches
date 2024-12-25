@@ -15,9 +15,9 @@ static const struct wlr_render_color shadow_color = COLOR(0x0000FFff);
 static const struct wlr_render_color shadow_color_focus = COLOR(0xFF0000ff);
 static const int shadow_blur_sigma = 20;
 static const int shadow_blur_sigma_focus = 40;
-static const char *const shadow_ignore_list[] = { "xdg-desktop-portal-gtk", NULL }; /* list of app-id to ignore */
 
 static const int corner_radius = 0; /* 0 disables corner_radius */
+static const int corner_radius_inner = 3; /* 0 disables corner_radius */
 
 static const int blur = 1; /* flag to enable blur */
 static const int blur_optimized = 1;
@@ -34,23 +34,30 @@ static const struct blur_data blur_data = {
 
 > **NOTE:** If you are using nix with flakes, scenefx has a flake for scenefx https://github.com/wlrfx/scenefx/blob/main/flake.nix
 
-> **NOTE:** Some GTK apps are being cut off when they have shadows enabled. You can use the `shadow_ignore_list` option to prevent shadows from being rendered on those apps
-
 > **NOTE:** Blur doesn't work on windows with opacity set (opacity_active, opacity_inactive)
 
-> **NOTE:** In DWL's Makefile `scenefx` must be placed before wlroots, e.g. `PKGS = scenefx wlroots wayland-server ...`
+> **NOTE:** In DWL's Makefile `scenefx` must be placed before `wlroots-0.18`, e.g. `PKGS = scenefx wlroots-0.18 wayland-server ...`
 
 <details>
 <summary>Preview</summary>
 <pre>
-<img src="https://i.imgur.com/4kFhSaS.png"/>
-<img src="https://i.imgur.com/9ZQAUXx.png"/>
+<img src="https://i.imgur.com/nJIX6lp.png"/>
 </pre>
 </details>
 
 ### Download
 
-- [git branch](https://codeberg.org/wochap/dwl/src/branch/v0.5/scenefx)
+- [git branch](https://codeberg.org/wochap/dwl/src/branch/v0.8-a/scenefx)
+
+- [0.8](https://codeberg.org/dwl/dwl-patches/raw/commit/494baec5b107114b74d243440aa8581fe6c03e48/patches/scenefx/scenefx.patch)
+
+  **NOTE:** This patch was tested with the `b2e0ac4beb85aa89d0357dc8fcf8762808650890` commit on the `main` branch of `SceneFX`. It supports rounded borders, blur, and shadows.
+
+  **IMPORTANT:** This patch requires you to build DWL with the following dependencies
+
+  - **scenefx**
+  - libGL
+
 - [2024-07-09](https://codeberg.org/dwl/dwl-patches/raw/commit/13d96b51b54500dd24544cf3a73c61b7a1414bc6/patches/scenefx/scenefx.patch)
 
   **IMPORTANT:** This patch only works with the `2ec3505248e819191c37cb831197629f373326fb` commit on the `main` branch of `scenefx`, therefore, it does not support **blur**.
@@ -59,6 +66,14 @@ static const struct blur_data blur_data = {
 
   - **scenefx**
   - libGL
+
+  <details>
+  <summary>Preview</summary>
+  <pre>
+  <img src="https://i.imgur.com/4kFhSaS.png"/>
+  <img src="https://i.imgur.com/9ZQAUXx.png"/>
+  </pre>
+  </details>
 
 - [2024-04-11](https://codeberg.org/dwl/dwl-patches/raw/commit/6e3a57ffd16dafa31900b7e89e51672bd7bcc1e8/scenefx/scenefx.patch)
 
