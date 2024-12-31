@@ -5,7 +5,6 @@ Subject: [PATCH] implement swallow
 
 ---
  client.h     |  12 ++++++
- config.def.h |   7 ++--
  dwl.c        | 112 ++++++++++++++++++++++++++++++++++++++++++++++++---
  3 files changed, 123 insertions(+), 8 deletions(-)
 
@@ -32,25 +31,6 @@ index 42f225f..bc9cad2 100644
  static inline void
  client_get_clip(Client *c, struct wlr_box *clip)
  {
-diff --git a/config.def.h b/config.def.h
-index 22d2171..7e5fef1 100644
---- a/config.def.h
-+++ b/config.def.h
-@@ -22,10 +22,11 @@ static int log_level = WLR_ERROR;
- 
- /* NOTE: ALWAYS keep a rule declared even if you don't use rules (e.g leave at least one example) */
- static const Rule rules[] = {
--	/* app_id             title       tags mask     isfloating   monitor */
-+	/* app_id             title       tags mask     isfloating  isterm  noswallow  monitor */
- 	/* examples: */
--	{ "Gimp_EXAMPLE",     NULL,       0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
--	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,           -1 }, /* Start on ONLY tag "9" */
-+	{ "Gimp_EXAMPLE",     NULL,       0,            1,          0,      0,         -1 }, /* Start on currently visible tags floating, not tiled */
-+	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,          0,      0,         -1 }, /* Start on ONLY tag "9" */
-+	{ "foot",             NULL,       0,            0,          1,      1,         -1 }, /* make foot swallow clients that are not foot */
- };
- 
- /* layout(s) */
 diff --git a/dwl.c b/dwl.c
 index dc0437e..c6a5e9d 100644
 --- a/dwl.c
@@ -65,12 +45,13 @@ index dc0437e..c6a5e9d 100644
  	/* Must keep these three elements in this order */
  	unsigned int type; /* XDGShell or X11* */
  	struct wlr_box geom; /* layout-relative, includes border */
-@@ -138,9 +139,11 @@ typedef struct {
+@@ -138,10 +139,12 @@ typedef struct {
  #endif
  	unsigned int bw;
  	uint32_t tags;
 -	int isfloating, isurgent, isfullscreen;
 +	int isfloating, isurgent, isfullscreen, isterm, noswallow;
+ 	char scratchkey;
  	uint32_t resize; /* configure serial of a pending resize */
 -} Client;
 +	pid_t pid;
@@ -79,13 +60,14 @@ index dc0437e..c6a5e9d 100644
  
  typedef struct {
  	uint32_t mod;
-@@ -229,6 +232,8 @@ typedef struct {
+@@ -229,7 +232,9 @@ typedef struct {
  	const char *title;
  	uint32_t tags;
  	int isfloating;
 +	int isterm;
 +	int noswallow;
  	int monitor;
+ 	const char scratchkey;
  } Rule;
  
 @@ -351,6 +356,10 @@ static Monitor *xytomon(double x, double y);
@@ -99,7 +81,7 @@ index dc0437e..c6a5e9d 100644
  
  /* variables */
  static const char broken[] = "broken";
-@@ -461,10 +470,14 @@ applyrules(Client *c)
+@@ -461,11 +470,15 @@ applyrules(Client *c)
  	if (!(title = client_get_title(c)))
  		title = broken;
  
@@ -111,10 +93,11 @@ index dc0437e..c6a5e9d 100644
  			c->isfloating = r->isfloating;
 +			c->isterm     = r->isterm;
 +			c->noswallow  = r->noswallow;
+ 			c->scratchkey = r->scratchkey;
  			newtags |= r->tags;
  			i = 0;
  			wl_list_for_each(m, &mons, link) {
-@@ -473,6 +486,21 @@ applyrules(Client *c)
+@@ -473,10 +486,25 @@ applyrules(Client *c)
  			}
  		}
  	}
@@ -133,6 +116,10 @@ index dc0437e..c6a5e9d 100644
 +			newtags = p->tags;
 +		}
 +	}
+ 	if (mon) {
+ 		c->geom.x = (mon->w.width - c->geom.width) / 2 + mon->m.x;
+ 		c->geom.y = (mon->w.height - c->geom.height) / 2 + mon->m.y;
+ 	}
  	setmon(c, mon, newtags);
  }
  

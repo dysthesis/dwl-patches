@@ -18,7 +18,7 @@ index ece537a..50d6ead 100644
 +static int drawstatus(Monitor *m);
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
- static void focusstack(const Arg *arg);
+ static void focusortogglematchingscratch(const Arg *arg);
 @@ -448,7 +449,7 @@ static struct wlr_box sgeom;
  static struct wl_list mons;
  static Monitor *selmon;

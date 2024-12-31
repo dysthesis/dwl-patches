@@ -4,23 +4,9 @@ Date: Fri, 5 Jul 2024 11:10:39 -0500
 Subject: [PATCH] implement cursortheme
 
 ---
- config.def.h | 2 ++
  dwl.c        | 8 ++++++--
  2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/config.def.h b/config.def.h
-index 22d2171..1f9ff56 100644
---- a/config.def.h
-+++ b/config.def.h
-@@ -13,6 +13,8 @@ static const float focuscolor[]            = COLOR(0x005577ff);
- static const float urgentcolor[]           = COLOR(0xff0000ff);
- /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
- static const float fullscreen_bg[]         = {0.1f, 0.1f, 0.1f, 1.0f}; /* You can also use glsl colors */
-+static const char *cursor_theme            = NULL;
-+static const char cursor_size[]            = "24"; /* Make sure it's a valid integer, otherwise things will break */
- 
- /* tagging - TAGCOUNT must be no greater than 31 */
- #define TAGCOUNT (9)
 diff --git a/dwl.c b/dwl.c
 index dc0437e..a91d42b 100644
 --- a/dwl.c

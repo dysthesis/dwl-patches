@@ -55,10 +55,13 @@ index 22d2171..5d1dc2b 100644
  
  /* logging */
  static int log_level = WLR_ERROR;
-@@ -127,6 +133,7 @@ static const Key keys[] = {
+@@ -127,9 +133,10 @@ static const Key keys[] = {
  	/* modifier                  key                 function        argument */
  	{ MODKEY,                    XKB_KEY_p,          spawn,          {.v = menucmd} },
  	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_Return,     spawn,          {.v = termcmd} },
+ 	{ MODKEY,                    XKB_KEY_grave,      togglescratch,  {.v = scratchpadcmd } },
+ 	// { MODKEY,                    XKB_KEY_grave,      focusortogglescratch, {.v = scratchpadcmd } },
+ 	// { MODKEY,                    XKB_KEY_grave,      focusortogglematchingscratch, {.v = scratchpadcmd } },
 +	{ MODKEY,                    XKB_KEY_b,          togglebar,      {0} },
  	{ MODKEY,                    XKB_KEY_j,          focusstack,     {.i = +1} },
  	{ MODKEY,                    XKB_KEY_k,          focusstack,     {.i = -1} },
@@ -510,7 +513,7 @@ index a2711f6..ece537a 100644
  static void buttonpress(struct wl_listener *listener, void *data);
  static void chvt(const Arg *arg);
  static void checkidleinhibitor(struct wlr_surface *exclude);
-@@ -285,6 +316,8 @@ static void destroysessionlock(struct wl_listener *listener, void *data);
+@@ -285,8 +316,10 @@ static void destroysessionlock(struct wl_listener *listener, void *data);
  static void destroysessionmgr(struct wl_listener *listener, void *data);
  static void destroykeyboardgroup(struct wl_listener *listener, void *data);
  static Monitor *dirtomon(enum wlr_direction dir);
@@ -518,6 +521,8 @@ index a2711f6..ece537a 100644
 +static void drawbars(void);
  static void focusclient(Client *c, int lift);
  static void focusmon(const Arg *arg);
+ static void focusortogglematchingscratch(const Arg *arg);
+ static void focusortogglescratch(const Arg *arg);
  static void focusstack(const Arg *arg);
 @@ -313,7 +346,6 @@ static void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int
  static void outputmgrtest(struct wl_listener *listener, void *data);
@@ -527,9 +532,10 @@ index a2711f6..ece537a 100644
  static void powermgrsetmode(struct wl_listener *listener, void *data);
  static void quit(const Arg *arg);
  static void rendermon(struct wl_listener *listener, void *data);
-@@ -335,9 +367,11 @@ static void setsel(struct wl_listener *listener, void *data);
+@@ -335,11 +367,13 @@ static void setsel(struct wl_listener *listener, void *data);
  static void setup(void);
  static void spawn(const Arg *arg);
+ static void spawnscratch(const Arg *arg);
  static void startdrag(struct wl_listener *listener, void *data);
 +static int statusin(int fd, unsigned int mask, void *data);
  static void tag(const Arg *arg);
@@ -538,6 +544,7 @@ index a2711f6..ece537a 100644
 +static void togglebar(const Arg *arg);
  static void togglefloating(const Arg *arg);
  static void togglefullscreen(const Arg *arg);
+ static void togglescratch(const Arg *arg);
  static void toggletag(const Arg *arg);
 @@ -346,6 +380,7 @@ static void unlocksession(struct wl_listener *listener, void *data);
  static void unmaplayersurfacenotify(struct wl_listener *listener, void *data);
